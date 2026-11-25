@@ -30,7 +30,8 @@ Para ocultar un platillo agotado sin borrarlo: `disponible: false`.
 
 - **Imprimir o PDF**: sale en una hoja tamaño carta, con un QR que lleva al menú para pedir en línea.
 - **Enviar por WhatsApp / Compartir**: manda el enlace de la carta (al compartirlo se ve la imagen de la carta).
-- **Imágenes descargables**: estados/historias (1080 × 1920) y publicación (1080 × 1350), en fondo Arena o Mar.
+- **Imágenes descargables**: estados/historias (1080 × 1920) y publicación (1080 × 1350), en versión Playa o Mar, con QR al menú abajo a la derecha.
+- **Letrero QR para mesas**: 1500 × 2100 px (5 × 7 in a 300 dpi), en versión Playa o Mar (`/descargas/qr-mesa-*.png`).
 
 Las imágenes se generan en cada despliegue a partir de `src/data/menu.ts` (`src/lib/carta-imagen.ts` → `/descargas/*.png`), así que **no hay que regenerarlas a mano**: al cambiar un precio y hacer push, la carta y las imágenes se actualizan solas.
 

@@ -12,7 +12,7 @@ import logo from '../assets/brand/logo-insignia.png';
 import { categoriasVisibles, precio, ETIQUETAS, type Platillo } from '../data/menu';
 import { negocio } from '../data/negocio';
 import { horarioAgrupado } from '../lib/horario';
-import { FORMATOS, TEMAS, type Formato, type Tema } from '../lib/carta-imagen';
+import { FORMATOS, QR_MESA, TEMAS, type Formato, type Tema } from '../lib/carta-imagen';
 import { ICONOS_CATEGORIA, letreroMaderaSVG, papelPicadoSVG } from '../lib/decoracion';
 
 const site = Astro.site!;
@@ -42,6 +42,12 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
     alto: f === 'estados' ? 640 : 450,
   })),
 );
+const letrerosQR = (Object.keys(TEMAS) as Tema[]).map((t) => ({
+  tema: t,
+  png: `/descargas/qr-mesa-${t}.png`,
+  vista: `/descargas/qr-mesa-${t}-vista.webp`,
+  nombreArchivo: `mariscos-el-chiapas-sonora-qr-mesa-${t}.png`,
+}));
 ---
 <Base
   titulo={`Carta · ${negocio.nombre}`}
@@ -169,6 +175,23 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
               <small>{FORMATOS[d.formato].detalle}</small>
             </div>
             <a class="descarga__btn" href={d.png} download={d.nombreArchivo}><Icono nombre="descarga" tam={18} /> Descargar PNG</a>
+          </li>
+        ))}
+      </ul>
+
+      <h2 class="descargas__sub" id="qr-titulo">QR para mesas y mostrador</h2>
+      <p>Imprímelo en 5 × 7 pulgadas (o en media carta) y déjalo en las mesas: al escanearlo abren el menú y piden por WhatsApp.</p>
+      <ul class="descargas__grid" aria-labelledby="qr-titulo">
+        {letrerosQR.map((q) => (
+          <li class="descarga">
+            <a class="descarga__vista" href={q.png} target="_blank" rel="noopener">
+              <img src={q.vista} alt={`Letrero con código QR del menú, versión ${TEMAS[q.tema].toLowerCase()}`} width="360" height="504" loading="lazy" />
+            </a>
+            <div class="descarga__info">
+              <strong>{QR_MESA.nombre} · {TEMAS[q.tema]}</strong>
+              <small>{QR_MESA.detalle}</small>
+            </div>
+            <a class="descarga__btn" href={q.png} download={q.nombreArchivo}><Icono nombre="descarga" tam={18} /> Descargar PNG</a>
           </li>
         ))}
       </ul>
@@ -345,6 +368,7 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
   .descargas { width: min(100%, 900px); margin: 48px auto 0; color: #fff; }
   .descargas h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); }
   .descargas > p { color: rgb(255 255 255 / 85%); margin-top: 4px; }
+  .descargas__sub { margin-top: 40px; }
   .descargas__grid { display: grid; gap: 14px; margin: 18px 0 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
   .descarga { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--papel); color: var(--tinta); border-radius: var(--radio); box-shadow: var(--sombra); }
   .descarga__vista { display: grid; place-items: center; aspect-ratio: 9 / 13; background: var(--arena-2); border-radius: 10px; overflow: hidden; }

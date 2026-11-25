@@ -7,6 +7,7 @@
  * de fuentes instaladas en el servidor).
  */
 import sharp from 'sharp';
+import QRCode from 'qrcode';
 import { FONT, r, textPath } from '../../scripts/brand-kit.mjs';
 import { categoriasVisibles, precio, type Categoria, type Etiqueta, type Platillo } from '../data/menu';
 import { negocio } from '../data/negocio';
@@ -68,6 +69,33 @@ function onda(x: number, y: number, w: number, color: string, amp = 4, paso = 24
   let d = `M${x} ${y}`;
   for (let i = 0; i * paso < w; i++) d += `q${paso / 4} ${i % 2 ? amp : -amp} ${paso / 2} 0t${paso / 2} 0`;
   return `<path d="${d}" fill="none" stroke="${color}" stroke-width="3.2" stroke-linecap="round"/>`;
+}
+
+/** QR vectorial del menú en línea, dentro de una tarjeta blanca redondeada. */
+async function tarjetaQR(url: string, x: number, y: number, caja: number, opts: { borde?: string; grosor?: number; radio?: number } = {}) {
+  const pad = Math.round(caja * 0.07);
+  const svgQR = await QRCode.toString(url, {
+    type: 'svg',
+    margin: 0,
+    errorCorrectionLevel: 'M',
+    color: { dark: M.marProfundo, light: '#0000' },
+  });
+  const qr = svgQR.replace(/<svg\b[^>]*?viewBox="([^"]+)"[^>]*>/, (_m, vb) => `<svg x="${x + pad}" y="${y + pad}" width="${caja - 2 * pad}" height="${caja - 2 * pad}" viewBox="${vb}" shape-rendering="crispEdges">`);
+  const radio = opts.radio ?? caja * 0.08;
+  const borde = opts.borde ? ` stroke="${opts.borde}" stroke-width="${opts.grosor ?? 8}"` : '';
+  return `<rect x="${x}" y="${y + caja * 0.025}" width="${caja}" height="${caja}" rx="${radio}" fill="#000" opacity=".18"/><rect x="${x}" y="${y}" width="${caja}" height="${caja}" rx="${radio}" fill="#FFFFFF"${borde}/>${qr}`;
+}
+
+/** Fondo de mar con textura de olitas (compartido por la carta y el letrero QR). */
+function fondoMar(W: number, H: number) {
+  let s = `<defs>${patronCuerda('cuerda')}<linearGradient id="mar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${M.turquesaClaro}"/><stop offset=".45" stop-color="${M.turquesa}"/><stop offset="1" stop-color="${M.marProfundo}"/></linearGradient></defs>`;
+  s += `<rect width="${W}" height="${H}" fill="url(#mar)"/>`;
+  for (let yy = 40; yy < H; yy += 46) {
+    for (let xx = (yy / 46) % 2 ? 0 : 30; xx < W; xx += 60) {
+      s += `<path d="M${xx} ${yy}q15 -10 30 0" fill="none" stroke="#FFFFFF" stroke-opacity=".07" stroke-width="3"/>`;
+    }
+  }
+  return s;
 }
 
 interface Bloque { alto: number; dibujar: (x: number, y: number) => string }
@@ -190,25 +218,18 @@ function repartir(bloques: Bloque[], columnas: number, gap: number) {
   return mejor;
 }
 
-export async function renderCarta(formato: Formato, tema: Tema, host: string): Promise<Buffer> {
+export async function renderCarta(formato: Formato, tema: Tema, urlMenu: string): Promise<Buffer> {
   const F = FORMATOS[formato];
   const p = PALETAS[tema];
   const W = F.w, H = F.h;
   const estados = formato === 'estados';
   const hoja = tema === 'arena';
-  const bandaH = estados ? 270 : 200;
+  const bandaH = estados ? 300 : 214;
   const picadoAlto = estados ? 128 : 92;
   const margen = 40; // borde de la hoja
   const M2 = estados ? 96 : 84; // margen del contenido
 
-  let svg = `<defs>${patronCuerda('cuerda')}<linearGradient id="mar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${M.turquesaClaro}"/><stop offset=".45" stop-color="${M.turquesa}"/><stop offset="1" stop-color="${M.marProfundo}"/></linearGradient></defs>`;
-  svg += `<rect width="${W}" height="${H}" fill="url(#mar)"/>`;
-  // Textura de olitas
-  for (let yy = 40; yy < H; yy += 46) {
-    for (let xx = (yy / 46) % 2 ? 0 : 30; xx < W; xx += 60) {
-      svg += `<path d="M${xx} ${yy}q15 -10 30 0" fill="none" stroke="#FFFFFF" stroke-opacity=".07" stroke-width="3"/>`;
-    }
-  }
+  let svg = fondoMar(W, H);
 
   // Hoja de papel con marco de cuerda
   const hojaTop = picadoAlto * 0.62;
@@ -273,21 +294,29 @@ export async function renderCarta(formato: Formato, tema: Tema, host: string): P
   const by = H - bandaH;
   svg += `<rect x="0" y="${by + 20}" width="${W}" height="${bandaH}" fill="${M.marProfundo}"/>`;
   svg += olas(W, by - 22, 64, M.turquesaClaro, M.marProfundo, 12);
-  const horario = horarioAgrupado(negocio.horario).map((g) => `${g.dias} ${g.horas.charAt(0).toLowerCase()}${g.horas.slice(1)}`).join(' · ');
-  const X = 64, util = W - 2 * X;
+  const grupos = horarioAgrupado(negocio.horario).map((g) => `${g.dias} ${g.horas.charAt(0).toLowerCase()}${g.horas.slice(1)}`);
+  const X = 64;
+  // QR abajo a la derecha (como en la hoja impresa); el texto ocupa el resto.
+  const qrCaja = estados ? 216 : 150;
+  const qrX = W - X - qrCaja;
+  const qrY = by + (estados ? 44 : 28);
+  const util = qrX - X - 32;
+  svg += await tarjetaQR(urlMenu, qrX, qrY, qrCaja, { radio: 18 });
+  svg += path(textPath(FONT.textoBold, 'ESCANEA Y PIDE', { x: qrX + qrCaja / 2, y: qrY + qrCaja + (estados ? 30 : 22), size: estados ? 19 : 15, tracking: 140, align: 'center' }).d, M.amarillo);
   if (estados) {
-    svg += path(textPath(FONT.textoBold, 'PEDIDOS POR WHATSAPP O LLAMADA', { x: X, y: by + 74, size: 22, tracking: 200 }).d, M.amarillo);
-    svg += path(textPath(FONT.textoBold, host, { x: W - X, y: by + 74, size: 22, align: 'right', max: 330 }).d, '#BFE3E3');
-    svg += path(textPath(FONT.extrabold, negocio.telefono.visible, { x: X, y: by + 144, size: 72 }).d, '#FFFFFF');
-    svg += path(textPath(FONT.texto, horario, { x: X, y: by + 190, size: 26, max: util }).d, '#FFFFFF');
-    svg += path(textPath(FONT.texto, negocio.domicilio.nota, { x: X, y: by + 226, size: 24, max: util }).d, '#BFE3E3');
-    svg += path(textPath(FONT.texto, `${negocio.direccion.linea}, ${negocio.direccion.ciudad}`, { x: X, y: by + 258, size: 24, max: util }).d, '#BFE3E3');
+    svg += path(textPath(FONT.textoBold, 'PEDIDOS POR WHATSAPP O LLAMADA', { x: X, y: by + 74, size: 22, tracking: 200, max: util }).d, M.amarillo);
+    svg += path(textPath(FONT.extrabold, negocio.telefono.visible, { x: X, y: by + 146, size: 72, max: util }).d, '#FFFFFF');
+    grupos.forEach((g, i) => {
+      svg += path(textPath(FONT.texto, g, { x: X, y: by + 190 + i * 32, size: 25, max: util }).d, '#FFFFFF');
+    });
+    const yExtra = by + 190 + grupos.length * 32 + 4;
+    svg += path(textPath(FONT.texto, negocio.domicilio.nota, { x: X, y: yExtra, size: 22, max: util }).d, '#BFE3E3');
+    svg += path(textPath(FONT.texto, `${negocio.direccion.linea}, ${negocio.direccion.ciudad}`, { x: X, y: yExtra + 30, size: 22, max: util }).d, '#BFE3E3');
   } else {
     svg += path(textPath(FONT.textoBold, 'PEDIDOS', { x: X, y: by + 66, size: 20, tracking: 220 }).d, M.amarillo);
-    svg += path(textPath(FONT.textoBold, host, { x: W - X, y: by + 66, size: 20, align: 'right', max: 360 }).d, '#BFE3E3');
-    svg += path(textPath(FONT.extrabold, negocio.telefono.visible, { x: X, y: by + 124, size: 58 }).d, '#FFFFFF');
-    svg += path(textPath(FONT.texto, horario, { x: X, y: by + 160, size: 22, max: util }).d, '#FFFFFF');
-    svg += path(textPath(FONT.texto, `Servicio a domicilio con costo extra · ${negocio.direccion.linea}`, { x: X, y: by + 188, size: 20, max: util }).d, '#BFE3E3');
+    svg += path(textPath(FONT.extrabold, negocio.telefono.visible, { x: X, y: by + 124, size: 58, max: util }).d, '#FFFFFF');
+    svg += path(textPath(FONT.texto, grupos.join(' · '), { x: X, y: by + 160, size: 22, max: util }).d, '#FFFFFF');
+    svg += path(textPath(FONT.texto, `Servicio a domicilio con costo extra · ${negocio.direccion.linea}`, { x: X, y: by + 190, size: 20, max: util }).d, '#BFE3E3');
   }
 
   const doc = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><title>${esc(negocio.nombre)}</title>${svg}</svg>`;
@@ -298,10 +327,76 @@ export async function renderCarta(formato: Formato, tema: Tema, host: string): P
     .toBuffer();
 }
 
+/** Letrero con QR para mesas y mostrador: 5 × 7 in a 300 dpi. */
+export const QR_MESA = { w: 1500, h: 2100, nombre: 'Letrero QR para mesas', detalle: '1500 × 2100 px · 5 × 7 in para imprimir' };
+
+export async function renderQRMesa(tema: Tema, urlMenu: string, host: string): Promise<Buffer> {
+  const W = QR_MESA.w, H = QR_MESA.h;
+  const p = PALETAS[tema];
+  const hoja = tema === 'arena';
+  const picadoAlto = 172;
+  const margen = 60;
+  const bandaH = 250;
+
+  let svg = fondoMar(W, H);
+  const hojaTop = picadoAlto * 0.6;
+  const hojaBottom = H - bandaH + 50;
+  if (hoja) {
+    svg += `<rect x="${margen}" y="${hojaTop + 14}" width="${W - margen * 2}" height="${hojaBottom - hojaTop}" rx="44" fill="#000" opacity=".2"/>`;
+    svg += `<rect x="${margen}" y="${hojaTop}" width="${W - margen * 2}" height="${hojaBottom - hojaTop}" rx="44" fill="${M.arena}" stroke="url(#cuerda)" stroke-width="20"/>`;
+  }
+  const coloresPicado = hoja ? undefined : [M.coral, M.amarillo, M.rosa, M.lima, '#FFFFFF'];
+  svg += `<g transform="translate(${margen / 2} 0)">${papelPicado(W - margen, 8, picadoAlto, 10, coloresPicado)}</g>`;
+
+  // Logo + letrero de madera + frase
+  const logoSize = 330;
+  const logo = { left: (W - logoSize) / 2, top: picadoAlto + 30 };
+  const ly = logo.top + logoSize + 26;
+  svg += letreroMadera(W / 2 - 470, ly, 940, 150, 'madera');
+  const t = textPath(FONT.extrabold, '¡ESCANEA Y PIDE!', { x: W / 2, y: ly + 106, size: 92, tracking: 20, align: 'center' });
+  svg += `<path d="${t.d}" fill="#FFFFFF" stroke="${M.maderaOscura}" stroke-width="9" stroke-linejoin="round" paint-order="stroke"/>`;
+  svg += path(textPath(FONT.script, '¡Del mar a tu mesa!', { x: W / 2, y: ly + 150 + 86, size: 62, align: 'center' }).d, p.script);
+
+  // QR grande con marco turquesa
+  const caja = 760;
+  const qy = ly + 150 + 128;
+  svg += await tarjetaQR(urlMenu, (W - caja) / 2, qy, caja, { borde: hoja ? M.turquesa : M.amarillo, grosor: 16, radio: 48 });
+
+  // Texto de apoyo
+  svg += path(textPath(FONT.textoBold, 'Mira la carta y haz tu pedido por WhatsApp', { x: W / 2, y: qy + caja + 84, size: 40, align: 'center', max: W - 2 * margen - 80 }).d, p.tinta);
+  svg += path(textPath(FONT.textoBold, host, { x: W / 2, y: qy + caja + 136, size: 34, align: 'center' }).d, p.acento);
+
+  // Banda inferior: teléfono y horario
+  const by = H - bandaH;
+  svg += `<rect x="0" y="${by + 24}" width="${W}" height="${bandaH}" fill="${M.marProfundo}"/>`;
+  svg += olas(W, by - 26, 76, M.turquesaClaro, M.marProfundo, 14);
+  const horario = horarioAgrupado(negocio.horario).map((g) => `${g.dias} ${g.horas.charAt(0).toLowerCase()}${g.horas.slice(1)}`).join(' · ');
+  svg += path(textPath(FONT.textoBold, 'PEDIDOS POR WHATSAPP O LLAMADA', { x: W / 2, y: by + 92, size: 28, tracking: 200, align: 'center' }).d, M.amarillo);
+  svg += path(textPath(FONT.extrabold, negocio.telefono.visible, { x: W / 2, y: by + 176, size: 92, align: 'center' }).d, '#FFFFFF');
+  svg += path(textPath(FONT.texto, horario, { x: W / 2, y: by + 226, size: 30, align: 'center', max: W - 140 }).d, '#BFE3E3');
+
+  const doc = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><title>${esc(negocio.nombre)} · QR</title>${svg}</svg>`;
+  const logoBuf = await sharp(r('src/assets/brand/logo-insignia.png')).resize(logoSize, logoSize).png().toBuffer();
+  return sharp(Buffer.from(doc))
+    .composite([{ input: logoBuf, left: Math.round(logo.left), top: Math.round(logo.top) }])
+    .withMetadata({ density: 300 })
+    .png({ compressionLevel: 9, palette: true, quality: 95, effort: 8 })
+    .toBuffer();
+}
+
 /** Lista de archivos que se publican en /descargas. */
-export const ARCHIVOS = (Object.keys(FORMATOS) as Formato[]).flatMap((formato) =>
-  (Object.keys(TEMAS) as Tema[]).flatMap((tema) => [
-    { archivo: `carta-${formato}-${tema}.png`, formato, tema, vista: false },
-    { archivo: `carta-${formato}-${tema}-vista.webp`, formato, tema, vista: true },
+export type Archivo =
+  | { tipo: 'carta'; archivo: string; formato: Formato; tema: Tema; vista: boolean }
+  | { tipo: 'qr'; archivo: string; tema: Tema; vista: boolean };
+export const ARCHIVOS: Archivo[] = [
+  ...(Object.keys(FORMATOS) as Formato[]).flatMap((formato) =>
+    (Object.keys(TEMAS) as Tema[]).flatMap((tema) => [
+      { tipo: 'carta' as const, archivo: `carta-${formato}-${tema}.png`, formato, tema, vista: false },
+      { tipo: 'carta' as const, archivo: `carta-${formato}-${tema}-vista.webp`, formato, tema, vista: true },
+    ]),
+  ),
+  ...(Object.keys(TEMAS) as Tema[]).flatMap((tema) => [
+    { tipo: 'qr' as const, archivo: `qr-mesa-${tema}.png`, tema, vista: false },
+    { tipo: 'qr' as const, archivo: `qr-mesa-${tema}-vista.webp`, tema, vista: true },
   ]),
-);
+];
