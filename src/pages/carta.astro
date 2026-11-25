@@ -234,25 +234,23 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
   }
 
   /* ── Hoja con marco de cuerda ── */
+  /* Marco de cuerda: mosaico SVG en el borde (background-clip).
+     Ni mask-composite ni repeating-linear-gradient sobreviven al PDF de Chrome:
+     el primero pinta la cuerda sobre toda la hoja y el segundo sale rosa. */
   .hoja {
     position: relative; isolation: isolate;
     width: min(100%, 900px); margin-inline: auto;
-    background: var(--sal); border-radius: 14px;
+    border: 9px solid transparent; border-radius: 16px;
+    background:
+      linear-gradient(var(--sal), var(--sal)) padding-box,
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Crect width='12' height='12' fill='%23a86a3c'/%3E%3Cpath d='M-3 3l6-6M0 12L12 0M9 15l6-6' stroke='%235e3519' stroke-width='3.6'/%3E%3C/svg%3E") 0 0 / 12px 12px repeat border-box;
     padding: 0 clamp(18px, 5vw, 52px);
     box-shadow: 0 30px 60px -28px rgb(0 0 0 / 55%);
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  .hoja::before {
-    content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-    padding: 9px; border-radius: 14px;
-    background: repeating-linear-gradient(45deg, var(--madera-clara) 0 7px, var(--madera-osc) 7px 11px);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  }
 
   /* Papel picado: corto en celular, largo en pantallas anchas */
-  .picado { margin: 0 calc(-1 * clamp(18px, 5vw, 52px)); padding: 9px 12px 0; }
+  .picado { margin: 0 calc(-1 * clamp(18px, 5vw, 52px)); padding: 2px 12px 0; }
   .picado :global(svg) { display: block; width: 100%; height: auto; }
   .picado--largo { display: none; }
   @media (min-width: 640px) { .picado--corto { display: none; } .picado--largo { display: block; } }
@@ -326,7 +324,7 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
     position: relative; display: grid; gap: 18px;
     margin: 30px calc(-1 * clamp(18px, 5vw, 52px)) 0; padding: 22px clamp(18px, 5vw, 52px) 26px;
     background: var(--mar-profundo); color: rgb(255 255 255 / 88%); font-size: .9rem;
-    border-radius: 0 0 14px 14px;
+    border-radius: 0 0 7px 7px;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .pie::before {
