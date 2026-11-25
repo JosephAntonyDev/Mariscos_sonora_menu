@@ -6,7 +6,7 @@ export const COLOR: Record<
   'cafe' | 'cobre' | 'oro' | 'oroClaro' | 'camaron' | 'mar' | 'marClaro' | 'arena' | 'blanco' | 'negro',
   string
 >;
-export const FONT: Record<'extrabold' | 'bold' | 'semibold' | 'texto' | 'textoBold', Font>;
+export const FONT: Record<'extrabold' | 'bold' | 'semibold' | 'texto' | 'textoBold' | 'script', Font>;
 export interface TextoTrazado { d: string; width: number; ascent: number; size: number }
 export function textPath(
   font: Font,

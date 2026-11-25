@@ -1,8 +1,9 @@
 ---
 /**
- * Carta en una sola hoja: para ver en el celular, imprimir (tamaño carta) o
- * mandar a los clientes. Se arma con los mismos datos que el menú (src/data).
+ * Carta en una sola hoja, estilo marisquería: para ver en el celular, imprimir
+ * (tamaño carta) o mandar a los clientes. Usa los mismos datos que el menú (src/data).
  */
+import '@fontsource/pacifico/400.css';
 import { Image } from 'astro:assets';
 import QRCode from 'qrcode';
 import Base from '../layouts/Base.astro';
@@ -12,6 +13,7 @@ import { categoriasVisibles, precio, ETIQUETAS, type Platillo } from '../data/me
 import { negocio } from '../data/negocio';
 import { horarioAgrupado } from '../lib/horario';
 import { FORMATOS, TEMAS, type Formato, type Tema } from '../lib/carta-imagen';
+import { ICONOS_CATEGORIA, letreroMaderaSVG, papelPicadoSVG } from '../lib/decoracion';
 
 const site = Astro.site!;
 const urlMenu = new URL('/', site).href;
@@ -20,7 +22,7 @@ const qr = await QRCode.toString(urlMenu, {
   type: 'svg',
   margin: 0,
   errorCorrectionLevel: 'M',
-  color: { dark: '#3B2014', light: '#0000' },
+  color: { dark: '#0B4F5C', light: '#0000' },
 });
 
 const novedades = categoriasVisibles
@@ -28,8 +30,7 @@ const novedades = categoriasVisibles
   .filter((p) => p.etiquetas?.some((e) => e === 'nuevo' || e === 'tiempo-limitado'));
 const horario = horarioAgrupado(negocio.horario);
 const textoCompartir = `Mira la carta de ${negocio.nombre} 🦐\n${urlCarta}`;
-const etiquetaNovedad = (p: Platillo) =>
-  p.etiquetas?.includes('nuevo') ? ETIQUETAS.nuevo : ETIQUETAS['tiempo-limitado'];
+const esNuevo = (p: Platillo) => p.etiquetas?.includes('nuevo') ?? false;
 
 const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
   (Object.keys(TEMAS) as Tema[]).map((t) => ({
@@ -64,21 +65,26 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
 
   <main class="lienzo">
     <article class="hoja" aria-labelledby="carta-titulo">
-      <header class="hoja__cabeza">
-        <Image src={logo} alt={negocio.nombre} width={300} widths={[150, 300]} sizes="150px" class="hoja__logo" loading="eager" />
-        <div>
-          <p class="hoja__eyebrow">Nuestra carta</p>
-          <h1 id="carta-titulo">¿Qué se te antoja?</h1>
-          <p class="hoja__lema">{negocio.lema}</p>
+      <div class="picado picado--corto" set:html={papelPicadoSVG(5)} />
+      <div class="picado picado--largo" set:html={papelPicadoSVG(9)} />
+
+      <header class="cabeza">
+        <Image src={logo} alt={negocio.nombre} width={320} widths={[160, 320]} sizes="160px" class="cabeza__logo" loading="eager" />
+        <div class="cabeza__texto">
+          <div class="letrero">
+            <span class="letrero__fondo" set:html={letreroMaderaSVG()} />
+            <h1 id="carta-titulo">Nuestro menú</h1>
+          </div>
+          <p class="cabeza__script">¡Del mar a tu mesa!</p>
         </div>
       </header>
 
       {novedades.length > 0 && (
         <section class="novedades" aria-label="Novedades">
           {novedades.map((p) => (
-            <div class="novedad">
-              <div>
-                <span class="novedad__tag">{etiquetaNovedad(p)}</span>
+            <div class:list={['novedad', { 'novedad--nuevo': esNuevo(p) }]}>
+              <span class="novedad__sello">{esNuevo(p) ? '¡Nuevo!' : 'Por tiempo limitado'}</span>
+              <div class="novedad__texto">
                 <h2>{p.nombre}</h2>
                 {p.descripcion && <p>{p.descripcion}</p>}
               </div>
@@ -89,9 +95,14 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
       )}
 
       <div class="carta">
-        {categoriasVisibles.map((c, i) => (
+        {categoriasVisibles.map((c) => (
           <section class="cat" aria-labelledby={`cat-${c.id}`}>
-            <h2 id={`cat-${c.id}`}><span aria-hidden="true">{String(i + 1).padStart(2, '0')}</span> {c.nombre}</h2>
+            <h2 id={`cat-${c.id}`}>
+              <span class="cat__icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={ICONOS_CATEGORIA[c.icono ?? 'pez']} /></svg>
+              </span>
+              {c.nombre}
+            </h2>
             {c.platillos.map((p) => {
               const unico = p.precios.length === 1;
               const detalle = p.ingredientes?.length ? p.ingredientes.join(' · ') : p.descripcion;
@@ -99,6 +110,7 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
                 <div class="item">
                   <p class="item__linea">
                     <span class="item__nombre">{p.nombre}</span>
+                    {p.etiquetas?.includes('nuevo') && <span class="item__tag">{ETIQUETAS.nuevo}</span>}
                     {unico && <><span class="item__puntos" aria-hidden="true"></span><span class="item__precio">{precio(p.precios[0].monto)}</span></>}
                   </p>
                   {detalle && <p class="item__detalle">{detalle}</p>}
@@ -121,17 +133,17 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
       </div>
       <p class="hoja__moneda">Precios en pesos mexicanos (MXN).</p>
 
-      <footer class="hoja__pie">
-        <div>
+      <footer class="pie">
+        <div class="pie__col">
           <p class="pie__eyebrow">Horario</p>
           {horario.map((g) => <p><strong>{g.dias}</strong><br />{g.horas}</p>)}
         </div>
-        <div>
+        <div class="pie__col">
           <p class="pie__eyebrow">Pedidos por WhatsApp o llamada</p>
           <a class="pie__tel" href={`tel:${negocio.telefono.tel}`}>{negocio.telefono.visible}</a>
           <p>{negocio.domicilio.nota}</p>
         </div>
-        <div>
+        <div class="pie__col">
           <p class="pie__eyebrow">Encuéntranos</p>
           <address>{negocio.direccion.linea}<br />{negocio.direccion.ciudad}</address>
           <p>{negocio.redes.usuario}</p>
@@ -150,7 +162,7 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
         {descargas.map((d) => (
           <li class="descarga">
             <a class="descarga__vista" href={d.png} target="_blank" rel="noopener">
-              <img src={d.vista} alt={`Carta en formato ${FORMATOS[d.formato].nombre.toLowerCase()}, fondo ${TEMAS[d.tema].toLowerCase()}`} width="360" height={d.alto} loading="lazy" />
+              <img src={d.vista} alt={`Carta en formato ${FORMATOS[d.formato].nombre.toLowerCase()}, versión ${TEMAS[d.tema].toLowerCase()}`} width="360" height={d.alto} loading="lazy" />
             </a>
             <div class="descarga__info">
               <strong>{FORMATOS[d.formato].nombre} · {TEMAS[d.tema]}</strong>
@@ -189,6 +201,13 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
 </script>
 
 <style>
+  .lienzo, .hoja {
+    --turquesa: #0f8c99; --turquesa-claro: #3cc1c9; --mar-profundo: #0b4f5c;
+    --coral: #e4561b; --coral-osc: #b8400e; --amarillo: #f5b731; --rosa: #e5487b;
+    --madera: #8b5530; --madera-clara: #a86a3c; --madera-osc: #5e3519;
+    --sal: #fff3dc; --sal-osc: #f2ddb4; --script: 'Pacifico', cursive;
+  }
+
   /* ── Barra de acciones (solo pantalla) ── */
   .barra { position: sticky; top: 0; z-index: 10; background: var(--mar); color: #fff; box-shadow: 0 6px 20px -12px rgb(0 0 0 / 50%); }
   .barra__in { width: min(100% - 2 * var(--gutter), 900px); margin-inline: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 0; }
@@ -206,73 +225,130 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
     .accion { flex-direction: column; justify-content: center; gap: 4px; padding: 8px 6px; border-radius: 14px; font-size: .75rem; text-align: center; line-height: 1.15; }
   }
 
-  /* ── Hoja ── */
-  .lienzo { padding: clamp(14px, 4vw, 40px) var(--gutter) 64px; }
-  .hoja {
-    width: min(100%, 900px); margin-inline: auto;
-    background: var(--papel); border: 1px solid var(--linea); border-radius: 10px;
-    padding: clamp(22px, 5vw, 52px) clamp(18px, 5vw, 56px) 0;
-    box-shadow: 0 24px 60px -30px rgb(59 32 20 / 35%);
+  /* ── Fondo de mar ── */
+  .lienzo {
+    padding: clamp(14px, 4vw, 40px) var(--gutter) 64px;
+    background:
+      radial-gradient(circle at 50% 120%, transparent 38%, rgb(255 255 255 / 9%) 39% 41%, transparent 42%) 0 0 / 60px 24px,
+      linear-gradient(180deg, var(--turquesa-claro) 0%, var(--turquesa) 38%, var(--mar-profundo) 100%);
   }
-  .hoja__cabeza { display: flex; align-items: center; gap: clamp(14px, 3vw, 28px); padding-bottom: 20px; border-bottom: 1px solid var(--linea); }
-  .hoja__logo { width: clamp(92px, 20vw, 150px); height: auto; flex: none; }
-  .hoja__eyebrow, .pie__eyebrow { font: 800 .75rem/1.3 var(--f-texto); letter-spacing: .16em; text-transform: uppercase; color: var(--camaron-osc); }
-  .hoja h1 { font-size: clamp(2rem, 6vw, 3.2rem); color: var(--mar); font-weight: 800; margin-top: 2px; }
-  .hoja__lema { color: var(--tinta-suave); margin-top: 6px; max-width: 46ch; }
 
-  .novedades { display: grid; gap: 10px; margin-top: 22px; }
+  /* ── Hoja con marco de cuerda ── */
+  .hoja {
+    position: relative; isolation: isolate;
+    width: min(100%, 900px); margin-inline: auto;
+    background: var(--sal); border-radius: 14px;
+    padding: 0 clamp(18px, 5vw, 52px);
+    box-shadow: 0 30px 60px -28px rgb(0 0 0 / 55%);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .hoja::before {
+    content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    padding: 9px; border-radius: 14px;
+    background: repeating-linear-gradient(45deg, var(--madera-clara) 0 7px, var(--madera-osc) 7px 11px);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+
+  /* Papel picado: corto en celular, largo en pantallas anchas */
+  .picado { margin: 0 calc(-1 * clamp(18px, 5vw, 52px)); padding: 9px 12px 0; }
+  .picado :global(svg) { display: block; width: 100%; height: auto; }
+  .picado--largo { display: none; }
+  @media (min-width: 640px) { .picado--corto { display: none; } .picado--largo { display: block; } }
+
+  /* ── Encabezado ── */
+  .cabeza { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 4px 0 18px; }
+  .cabeza__logo { width: clamp(120px, 28vw, 150px); height: auto; filter: drop-shadow(0 10px 14px rgb(59 32 20 / 30%)); }
+  .cabeza__texto { display: grid; justify-items: center; gap: 2px; }
+  .letrero { position: relative; display: grid; place-items: center; min-width: min(78vw, 420px); padding: 14px clamp(34px, 9vw, 44px) 18px; }
+  .letrero__fondo { position: absolute; inset: 0; z-index: -1; }
+  .letrero__fondo :global(svg) { width: 100%; height: 100%; display: block; }
+  .letrero h1 {
+    font-size: clamp(1.6rem, 7.4vw, 2.7rem); font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: #fff; white-space: nowrap;
+    text-shadow: 0 3px 0 var(--madera-osc), 0 0 1px var(--madera-osc);
+  }
+  .cabeza__script { font: 400 clamp(1.35rem, 4.5vw, 1.75rem)/1.3 var(--script); color: var(--coral); }
+  @media (min-width: 700px) {
+    .cabeza { flex-direction: row; justify-content: center; text-align: left; gap: 26px; }
+  }
+
+  /* ── Novedades con sello ── */
+  .novedades { display: grid; gap: 14px; margin-top: 6px; }
   @media (min-width: 700px) { .novedades { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); } }
   .novedad {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    padding: 16px 18px; border-radius: 8px; background: var(--mar); color: #fff;
+    position: relative; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 26px 18px 16px; border-radius: 12px; color: #fff; overflow: visible;
+    background:
+      radial-gradient(circle at 50% 130%, transparent 38%, rgb(255 255 255 / 12%) 39% 42%, transparent 43%) 0 100% / 40px 16px repeat-x,
+      var(--turquesa);
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  .novedad:nth-child(even) { background: var(--camaron); }
-  .novedad__tag { font: 800 .7rem/1 var(--f-texto); letter-spacing: .12em; text-transform: uppercase; color: var(--oro-claro); }
-  .novedad:nth-child(even) .novedad__tag { color: #fff3e6; }
-  .novedad h2 { font-size: 1.45rem; margin-top: 4px; }
-  .novedad p { font-size: .875rem; color: rgb(255 255 255 / 86%); margin-top: 2px; }
-  .novedad__precio { font: 800 2.4rem/1 var(--f-display); white-space: nowrap; }
+  .novedad--nuevo { background-color: var(--coral); }
+  .novedad__sello {
+    position: absolute; top: -12px; left: 14px; padding: 6px 12px 5px; border-radius: 6px;
+    background: var(--amarillo); color: var(--cafe); font: 400 1rem/1 var(--script);
+    transform: rotate(-4deg); box-shadow: 0 4px 0 rgb(0 0 0 / 15%);
+  }
+  .novedad h2 { font-size: 1.5rem; }
+  .novedad p { font-size: .875rem; color: rgb(255 255 255 / 90%); margin-top: 2px; }
+  .novedad__precio { font: 800 2.5rem/1 var(--f-display); white-space: nowrap; color: #fff; text-shadow: 0 3px 0 rgb(0 0 0 / 18%); }
 
-  .carta { columns: 1; column-gap: 48px; padding-top: 6px; }
+  /* ── Carta ── */
+  .carta { columns: 1; column-gap: 48px; padding-top: 4px; }
   @media (min-width: 700px) { .carta { columns: 2; } }
   .cat { break-inside: avoid; padding-top: 22px; }
-  .cat h2 { display: flex; align-items: baseline; gap: 10px; font-size: 1.5rem; color: var(--cafe); padding-bottom: 8px; border-bottom: 2px solid var(--cafe); margin-bottom: 4px; }
-  .cat h2 span { font: 800 .8rem/1 var(--f-texto); color: var(--camaron-osc); }
-  .item { padding: 11px 0; border-bottom: 1px solid var(--linea); break-inside: avoid; }
+  .cat h2 {
+    display: flex; align-items: center; gap: 10px; font-size: 1.55rem; color: var(--mar-profundo);
+    padding-bottom: 12px; margin-bottom: 2px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='8' viewBox='0 0 24 8'%3E%3Cpath d='M0 4q6-5 12 0t12 0' fill='none' stroke='%23e4561b' stroke-width='2.4'/%3E%3C/svg%3E") left bottom / 24px 8px repeat-x;
+  }
+  .cat__icono {
+    flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--turquesa); color: #fff; box-shadow: inset 0 -3px 0 rgb(0 0 0 / 18%);
+  }
+  .item { padding: 11px 0; border-bottom: 1px dashed var(--sal-osc); break-inside: avoid; }
   .item:last-child { border-bottom: 0; }
   .item__linea { display: flex; align-items: baseline; gap: 8px; }
-  .item__nombre { font: 700 1.15rem/1.25 var(--f-display); }
-  .item__puntos { flex: 1; min-width: 16px; border-bottom: 2px dotted #c9b393; transform: translateY(-4px); }
-  .item__precio { font: 800 1.3rem/1 var(--f-display); color: var(--camaron-osc); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .item__nombre { font: 700 1.17rem/1.25 var(--f-display); color: var(--cafe); }
+  .item__tag { align-self: center; font: 800 .65rem/1 var(--f-texto); letter-spacing: .08em; text-transform: uppercase; padding: 4px 6px; border-radius: 5px; background: var(--coral); color: #fff; }
+  .item__puntos { flex: 1; min-width: 16px; border-bottom: 3px dotted #e9a27a; transform: translateY(-4px); }
+  .item__precio { font: 800 1.35rem/1 var(--f-display); color: var(--coral-osc); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .item__detalle { font-size: .9rem; line-height: 1.4; color: var(--tinta-suave); margin-top: 3px; padding-right: 28px; }
   .item__opciones { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
-  .item__linea--opcion { font-weight: 700; font-size: .95rem; padding-left: 14px; position: relative; }
-  .item__linea--opcion::before { content: ''; position: absolute; left: 0; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--camaron); }
-  .item__linea--opcion .item__precio { font-size: 1.15rem; }
-  .hoja__moneda { font-size: .8rem; color: var(--tinta-suave); padding: 14px 0 4px; }
+  .item__linea--opcion { font-weight: 700; font-size: .95rem; padding-left: 16px; position: relative; }
+  .item__linea--opcion::before { content: ''; position: absolute; left: 0; top: .5em; width: 8px; height: 8px; border-radius: 50%; background: var(--turquesa); }
+  .item__linea--opcion .item__precio { font-size: 1.2rem; }
+  .hoja__moneda { font-size: .8rem; color: var(--tinta-suave); padding: 14px 0 6px; }
 
-  .hoja__pie {
-    display: grid; gap: 18px; margin: 14px calc(-1 * clamp(18px, 5vw, 56px)) 0; padding: 22px clamp(18px, 5vw, 56px);
-    border-top: 1px solid var(--linea); background: var(--arena); border-radius: 0 0 10px 10px; font-size: .9rem; color: var(--tinta-suave);
+  /* ── Pie de mar con olas ── */
+  .pie {
+    position: relative; display: grid; gap: 18px;
+    margin: 30px calc(-1 * clamp(18px, 5vw, 52px)) 0; padding: 22px clamp(18px, 5vw, 52px) 26px;
+    background: var(--mar-profundo); color: rgb(255 255 255 / 88%); font-size: .9rem;
+    border-radius: 0 0 14px 14px;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  @media (min-width: 700px) { .hoja__pie { grid-template-columns: 1fr 1.2fr 1fr auto; align-items: start; } }
-  .hoja__pie p + p { margin-top: 6px; }
-  .hoja__pie strong { color: var(--tinta); }
-  .hoja__pie address { font-style: normal; margin-top: 6px; }
-  .pie__eyebrow { margin-bottom: 6px; }
-  .pie__tel { display: block; font: 800 1.9rem/1.1 var(--f-display); color: var(--cafe); text-decoration: none; margin-bottom: 4px; }
-  .pie__qr { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 800 .8rem/1.25 var(--f-texto); color: var(--cafe); }
-  .pie__qr-img { display: block; width: 92px; height: 92px; padding: 6px; background: #fff; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--linea); }
+  .pie::before {
+    content: ''; position: absolute; left: 0; right: 0; top: -22px; height: 24px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='24' viewBox='0 0 120 24' preserveAspectRatio='none'%3E%3Cpath d='M0 12q30-14 60 0t60 0v12H0Z' fill='%233cc1c9'/%3E%3Cpath d='M0 16q30-12 60 0t60 0v8H0Z' fill='%230b4f5c'/%3E%3C/svg%3E") left bottom / 120px 24px repeat-x;
+  }
+  @media (min-width: 700px) { .pie { grid-template-columns: 1fr 1.2fr 1fr auto; align-items: start; } }
+  .pie p + p { margin-top: 6px; }
+  .pie strong { color: #fff; }
+  .pie address { font-style: normal; margin-top: 6px; }
+  .pie__eyebrow { font: 800 .72rem/1.3 var(--f-texto); letter-spacing: .14em; text-transform: uppercase; color: var(--amarillo); margin-bottom: 6px; }
+  .pie__tel { display: block; font: 800 1.95rem/1.1 var(--f-display); color: #fff; text-decoration: none; margin-bottom: 4px; }
+  .pie__qr { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 800 .8rem/1.25 var(--f-texto); color: #fff; }
+  .pie__qr-img { display: block; width: 92px; height: 92px; padding: 7px; background: #fff; border-radius: 10px; }
   .pie__qr-img :global(svg) { width: 100%; height: 100%; }
 
   /* ── Descargas (solo pantalla) ── */
-  .descargas { width: min(100%, 900px); margin: 48px auto 0; }
-  .descargas h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); color: var(--mar); }
-  .descargas > p { color: var(--tinta-suave); margin-top: 4px; }
+  .descargas { width: min(100%, 900px); margin: 48px auto 0; color: #fff; }
+  .descargas h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); }
+  .descargas > p { color: rgb(255 255 255 / 85%); margin-top: 4px; }
   .descargas__grid { display: grid; gap: 14px; margin: 18px 0 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
-  .descarga { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--papel); border-radius: var(--radio); box-shadow: var(--sombra); }
+  .descarga { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--papel); color: var(--tinta); border-radius: var(--radio); box-shadow: var(--sombra); }
   .descarga__vista { display: grid; place-items: center; aspect-ratio: 9 / 13; background: var(--arena-2); border-radius: 10px; overflow: hidden; }
   .descarga__vista img { width: 100%; height: 100%; object-fit: contain; }
   .descarga__info { display: grid; gap: 2px; }
@@ -282,19 +358,24 @@ const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
 
   /* ── Impresión: una hoja tamaño carta ──
      La clase .imprimir se agrega en beforeprint; @media print cubre lo demás. */
-  @page { size: letter portrait; margin: 9mm 10mm; }
+  @page { size: letter portrait; margin: 8mm 9mm; }
   @media print {
     .no-imprimir { display: none !important; }
     :global(body) { background: #fff; }
   }
-  :global(html.imprimir) { font-size: 13px; }
+  :global(html.imprimir) { font-size: 12px; }
   :global(html.imprimir body) { background: #fff; }
-  :global(html.imprimir) .lienzo { padding: 0; }
-  :global(html.imprimir) .hoja { width: 100%; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
-  :global(html.imprimir) .hoja__pie { margin-inline: 0; padding: 14px 16px; border-radius: 8px; grid-template-columns: 1fr 1.2fr 1fr auto; }
+  :global(html.imprimir) .lienzo { padding: 0; background: #fff; }
+  :global(html.imprimir) .hoja { width: 100%; box-shadow: none; }
+  :global(html.imprimir) .picado--corto { display: none; }
+  :global(html.imprimir) .picado--largo { display: block; padding-inline: 90px; }
+  :global(html.imprimir) .cabeza { flex-direction: row; text-align: left; padding-bottom: 10px; gap: 20px; }
+  :global(html.imprimir) .cabeza__logo { width: 104px; }
+  :global(html.imprimir) .letrero { min-width: 340px; padding: 10px 36px 14px; }
   :global(html.imprimir) .novedades { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+  :global(html.imprimir) .novedad { padding: 20px 16px 12px; }
   :global(html.imprimir) .carta { columns: 2; }
-  :global(html.imprimir) .hoja__logo { width: 120px; }
-  :global(html.imprimir) .cat { padding-top: 14px; }
-  :global(html.imprimir) .item { padding: 7px 0; }
+  :global(html.imprimir) .cat { padding-top: 12px; }
+  :global(html.imprimir) .item { padding: 6px 0; }
+  :global(html.imprimir) .pie { grid-template-columns: 1fr 1.2fr 1fr auto; margin-top: 26px; padding-block: 14px 16px; }
 </style>

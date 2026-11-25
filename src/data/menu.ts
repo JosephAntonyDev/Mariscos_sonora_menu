@@ -13,6 +13,7 @@
  * ═══════════════════════════════════════════════════════════════
  */
 import type { ImageMetadata } from 'astro';
+import type { IconoCategoria } from '../lib/decoracion';
 import naranjera from '../assets/fotos/naranjera.png';
 import arreglada from '../assets/fotos/arreglada.png';
 import ceviche from '../assets/fotos/ceviche.png';
@@ -54,6 +55,8 @@ export interface Categoria {
   /** Nombre corto para la barra de categorías. */
   corto: string;
   descripcion?: string;
+  /** Ícono de la carta para imprimir: camaron | pez | tostada | vaso | botella | estrella. */
+  icono?: IconoCategoria;
   platillos: Platillo[];
 }
 
@@ -67,6 +70,7 @@ export const ETIQUETAS: Record<Etiqueta, string> = {
 export const carta: Categoria[] = [
   {
     id: 'ceviches-aguachiles',
+    icono: 'camaron',
     nombre: 'Ceviches y aguachiles',
     corto: 'Ceviches',
     descripcion: 'Preparados al momento, frescos y bien fríos.',
@@ -96,6 +100,7 @@ export const carta: Categoria[] = [
   },
   {
     id: 'tostadas',
+    icono: 'tostada',
     nombre: 'Tostadas y botanas',
     corto: 'Tostadas',
     platillos: [
@@ -122,6 +127,7 @@ export const carta: Categoria[] = [
   },
   {
     id: 'especiales',
+    icono: 'estrella',
     nombre: 'Paquetes especiales',
     corto: 'Paquetes',
     platillos: [
@@ -139,6 +145,7 @@ export const carta: Categoria[] = [
   },
   {
     id: 'preparados',
+    icono: 'vaso',
     nombre: 'Bebidas preparadas',
     corto: 'Preparados',
     platillos: [
@@ -157,6 +164,7 @@ export const carta: Categoria[] = [
   },
   {
     id: 'bebidas',
+    icono: 'botella',
     nombre: 'Refrescos y agua',
     corto: 'Bebidas',
     platillos: [

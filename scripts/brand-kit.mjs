@@ -35,6 +35,8 @@ export const FONT = {
   // Nunito: textos y descripciones
   texto: loadFont('nunito', 'nunito-latin-600-normal.woff'),
   textoBold: loadFont('nunito', 'nunito-latin-800-normal.woff'),
+  // Pacifico: frases de brocha en la carta ("¡Del mar a tu mesa!")
+  script: loadFont('pacifico', 'pacifico-latin-400-normal.woff'),
 };
 
 // Serializador propio: Path.toPathData() de opentype.js 2.0 voltea cada glifo
