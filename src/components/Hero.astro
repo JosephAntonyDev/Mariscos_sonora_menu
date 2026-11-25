@@ -45,6 +45,9 @@ const resumen = horarioAgrupado(negocio.horario)
           <Icono nombre="telefono" /> {negocio.telefono.visible}
         </a>
       </div>
+      <a class="hero__carta" href="/carta">
+        <Icono nombre="carta" tam={18} /> Ver la carta completa <span>· imprimir o compartir</span>
+      </a>
     </div>
   </div>
   <svg class="hero__ola" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
@@ -98,6 +101,12 @@ const resumen = horarioAgrupado(negocio.horario)
   }
   .hero__lema { max-width: 36ch; margin: 12px auto 0; font-size: 1.0625rem; color: rgb(255 255 255 / 88%); }
   .hero__ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
+  .hero__carta {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 6px;
+    font-weight: 800; color: var(--oro-claro); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1.5px;
+  }
+  .hero__carta span { font-weight: 600; color: rgb(255 255 255 / 75%); text-decoration: none; }
+  @media (max-width: 380px) { .hero__carta span { display: none; } }
   .hero__ola { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: clamp(36px, 6vw, 80px); }
 
   .hero :global(.estado) {

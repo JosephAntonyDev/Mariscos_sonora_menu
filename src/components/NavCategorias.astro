@@ -1,9 +1,12 @@
 ---
+import Icono from './Icono.astro';
 interface Props { enlaces: { id: string; texto: string }[] }
 const { enlaces } = Astro.props;
 ---
 <nav class="navcat" aria-label="Categorías del menú">
   <ul class="navcat__lista contenedor">
+    <!-- Primero, para que se vea sin desplazar la barra en el celular -->
+    <li><a href="/carta" class="navcat__carta"><Icono nombre="carta" tam={16} /> Carta</a></li>
     {enlaces.map((e) => (
       <li><a href={`#${e.id}`} data-navcat={e.id}>{e.texto}</a></li>
     ))}
@@ -70,4 +73,6 @@ const { enlaces } = Astro.props;
   }
   .navcat a:hover { color: var(--mar); }
   .navcat a[aria-current='true'] { background: var(--mar); color: #fff; box-shadow: none; }
+  .navcat a.navcat__carta { gap: 6px; background: var(--camaron); color: #fff; box-shadow: none; }
+  .navcat a.navcat__carta:hover { background: #cf4a13; color: #fff; }
 </style>

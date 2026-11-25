@@ -5,6 +5,7 @@ import NavCategorias from '../components/NavCategorias.astro';
 import Destacados from '../components/Destacados.astro';
 import SeccionCarta from '../components/SeccionCarta.astro';
 import Info from '../components/Info.astro';
+import CartaBanner from '../components/CartaBanner.astro';
 import Pie from '../components/Pie.astro';
 import Pedido from '../components/Pedido.tsx';
 import '../styles/pedido.css';
@@ -72,6 +73,7 @@ const jsonLd = {
     <div class="contenedor">
       {categoriasVisibles.map((c, i) => <SeccionCarta categoria={c} indice={i + 1} />)}
     </div>
+    <CartaBanner />
     <Info />
   </main>
   <Pie />

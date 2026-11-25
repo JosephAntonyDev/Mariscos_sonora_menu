@@ -2,10 +2,11 @@
 // Convierte texto en trazos vectoriales (sin depender de fuentes instaladas).
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import opentype from 'opentype.js';
 
-export const ROOT = fileURLToPath(new URL('..', import.meta.url));
+// process.cwd(): estos helpers también se ejecutan dentro del build de Astro
+// (endpoints de /descargas), donde import.meta.url apunta al bundle, no al repo.
+export const ROOT = process.cwd();
 export const r = (...s) => path.join(ROOT, ...s);
 
 /** Paleta oficial (sincronizada con src/styles/tokens.css). */
@@ -22,14 +23,18 @@ export const COLOR = {
   negro: '#000000',
 };
 
-const loadFont = (file) => {
-  const b = fs.readFileSync(r('node_modules/@fontsource/baloo-2/files', file));
+const loadFont = (pkg, file) => {
+  const b = fs.readFileSync(r('node_modules/@fontsource', pkg, 'files', file));
   return opentype.parse(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
 };
 export const FONT = {
-  extrabold: loadFont('baloo-2-latin-800-normal.woff'),
-  bold: loadFont('baloo-2-latin-700-normal.woff'),
-  semibold: loadFont('baloo-2-latin-600-normal.woff'),
+  // Baloo 2: títulos, precios y rótulos
+  extrabold: loadFont('baloo-2', 'baloo-2-latin-800-normal.woff'),
+  bold: loadFont('baloo-2', 'baloo-2-latin-700-normal.woff'),
+  semibold: loadFont('baloo-2', 'baloo-2-latin-600-normal.woff'),
+  // Nunito: textos y descripciones
+  texto: loadFont('nunito', 'nunito-latin-600-normal.woff'),
+  textoBold: loadFont('nunito', 'nunito-latin-800-normal.woff'),
 };
 
 // Serializador propio: Path.toPathData() de opentype.js 2.0 voltea cada glifo
@@ -55,9 +60,19 @@ function serialize(commands) {
 /**
  * Traza una línea de texto. Devuelve el path SVG, su ancho y la caja vertical.
  * tracking: espaciado extra en milésimas de em (como en Figma/Illustrator).
+ * max: ancho máximo; si el texto no cabe, se reduce el tamaño hasta que quepa.
  */
-export function textPath(font, text, { x = 0, y = 0, size = 100, tracking = 0, align = 'left' } = {}) {
-  const glyphs = font.stringToGlyphs(text.normalize('NFC'));
+export function textPath(font, text, opts = {}) {
+  const { max = Infinity, ...rest } = opts;
+  const first = layoutText(font, text, rest);
+  if (first.width <= max) return first;
+  return layoutText(font, text, { ...rest, size: (rest.size ?? 100) * (max / first.width) });
+}
+
+function layoutText(font, text, { x = 0, y = 0, size = 100, tracking = 0, align = 'left' } = {}) {
+  // charToGlyph letra por letra: stringToGlyphs aplica sustituciones GSUB que
+  // opentype.js no soporta en Nunito (lookupType 6, formato 2) y lanza error.
+  const glyphs = Array.from(text.normalize('NFC'), (c) => font.charToGlyph(c));
   const scale = size / font.unitsPerEm;
   const extra = (tracking / 1000) * size;
   let width = 0;
@@ -77,5 +92,5 @@ export function textPath(font, text, { x = 0, y = 0, size = 100, tracking = 0, a
     })
     .join('');
   const ascent = (font.tables.os2.sCapHeight || font.ascender * 0.7) * scale;
-  return { d, width, ascent };
+  return { d, width, ascent, size };
 }

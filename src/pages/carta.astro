@@ -1,0 +1,300 @@
+---
+/**
+ * Carta en una sola hoja: para ver en el celular, imprimir (tamaño carta) o
+ * mandar a los clientes. Se arma con los mismos datos que el menú (src/data).
+ */
+import { Image } from 'astro:assets';
+import QRCode from 'qrcode';
+import Base from '../layouts/Base.astro';
+import Icono from '../components/Icono.astro';
+import logo from '../assets/brand/logo-insignia.png';
+import { categoriasVisibles, precio, ETIQUETAS, type Platillo } from '../data/menu';
+import { negocio } from '../data/negocio';
+import { horarioAgrupado } from '../lib/horario';
+import { FORMATOS, TEMAS, type Formato, type Tema } from '../lib/carta-imagen';
+
+const site = Astro.site!;
+const urlMenu = new URL('/', site).href;
+const urlCarta = new URL('/carta', site).href;
+const qr = await QRCode.toString(urlMenu, {
+  type: 'svg',
+  margin: 0,
+  errorCorrectionLevel: 'M',
+  color: { dark: '#3B2014', light: '#0000' },
+});
+
+const novedades = categoriasVisibles
+  .flatMap((c) => c.platillos)
+  .filter((p) => p.etiquetas?.some((e) => e === 'nuevo' || e === 'tiempo-limitado'));
+const horario = horarioAgrupado(negocio.horario);
+const textoCompartir = `Mira la carta de ${negocio.nombre} 🦐\n${urlCarta}`;
+const etiquetaNovedad = (p: Platillo) =>
+  p.etiquetas?.includes('nuevo') ? ETIQUETAS.nuevo : ETIQUETAS['tiempo-limitado'];
+
+const descargas = (Object.keys(FORMATOS) as Formato[]).flatMap((f) =>
+  (Object.keys(TEMAS) as Tema[]).map((t) => ({
+    formato: f,
+    tema: t,
+    png: `/descargas/carta-${f}-${t}.png`,
+    vista: `/descargas/carta-${f}-${t}-vista.webp`,
+    nombreArchivo: `mariscos-el-chiapas-sonora-carta-${f}-${t}.png`,
+    alto: f === 'estados' ? 640 : 450,
+  })),
+);
+---
+<Base
+  titulo={`Carta · ${negocio.nombre}`}
+  descripcion={`La carta completa de ${negocio.nombre}: precios, horario y teléfono para pedir. Para ver, imprimir o compartir.`}
+  imagen={{ ruta: '/descargas/carta-post-arena.png', ancho: 1080, alto: 1350, alt: `Carta de ${negocio.nombre} con precios` }}
+>
+  <div class="barra no-imprimir">
+    <div class="barra__in">
+      <a class="barra__volver" href="/"><span aria-hidden="true">←</span> Pedir en línea</a>
+      <div class="barra__acciones">
+        <button type="button" class="accion" data-imprimir><Icono nombre="imprimir" tam={18} /> <span>Imprimir o PDF</span></button>
+        <a class="accion accion--wa" href={`https://wa.me/?text=${encodeURIComponent(textoCompartir)}`} target="_blank" rel="noopener">
+          <Icono nombre="whatsapp" tam={18} /> <span>Enviar por WhatsApp</span>
+        </a>
+        <button type="button" class="accion" data-compartir data-url={urlCarta} data-titulo={`Carta · ${negocio.nombre}`}>
+          <Icono nombre="compartir" tam={18} /> <span data-compartir-texto>Compartir</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <main class="lienzo">
+    <article class="hoja" aria-labelledby="carta-titulo">
+      <header class="hoja__cabeza">
+        <Image src={logo} alt={negocio.nombre} width={300} widths={[150, 300]} sizes="150px" class="hoja__logo" loading="eager" />
+        <div>
+          <p class="hoja__eyebrow">Nuestra carta</p>
+          <h1 id="carta-titulo">¿Qué se te antoja?</h1>
+          <p class="hoja__lema">{negocio.lema}</p>
+        </div>
+      </header>
+
+      {novedades.length > 0 && (
+        <section class="novedades" aria-label="Novedades">
+          {novedades.map((p) => (
+            <div class="novedad">
+              <div>
+                <span class="novedad__tag">{etiquetaNovedad(p)}</span>
+                <h2>{p.nombre}</h2>
+                {p.descripcion && <p>{p.descripcion}</p>}
+              </div>
+              <strong class="novedad__precio">{precio(p.precios[0].monto)}</strong>
+            </div>
+          ))}
+        </section>
+      )}
+
+      <div class="carta">
+        {categoriasVisibles.map((c, i) => (
+          <section class="cat" aria-labelledby={`cat-${c.id}`}>
+            <h2 id={`cat-${c.id}`}><span aria-hidden="true">{String(i + 1).padStart(2, '0')}</span> {c.nombre}</h2>
+            {c.platillos.map((p) => {
+              const unico = p.precios.length === 1;
+              const detalle = p.ingredientes?.length ? p.ingredientes.join(' · ') : p.descripcion;
+              return (
+                <div class="item">
+                  <p class="item__linea">
+                    <span class="item__nombre">{p.nombre}</span>
+                    {unico && <><span class="item__puntos" aria-hidden="true"></span><span class="item__precio">{precio(p.precios[0].monto)}</span></>}
+                  </p>
+                  {detalle && <p class="item__detalle">{detalle}</p>}
+                  {!unico && (
+                    <ul class="item__opciones">
+                      {p.precios.map((pr) => (
+                        <li class="item__linea item__linea--opcion">
+                          <span>{pr.presentacion}</span>
+                          <span class="item__puntos" aria-hidden="true"></span>
+                          <span class="item__precio">{precio(pr.monto)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </section>
+        ))}
+      </div>
+      <p class="hoja__moneda">Precios en pesos mexicanos (MXN).</p>
+
+      <footer class="hoja__pie">
+        <div>
+          <p class="pie__eyebrow">Horario</p>
+          {horario.map((g) => <p><strong>{g.dias}</strong><br />{g.horas}</p>)}
+        </div>
+        <div>
+          <p class="pie__eyebrow">Pedidos por WhatsApp o llamada</p>
+          <a class="pie__tel" href={`tel:${negocio.telefono.tel}`}>{negocio.telefono.visible}</a>
+          <p>{negocio.domicilio.nota}</p>
+        </div>
+        <div>
+          <p class="pie__eyebrow">Encuéntranos</p>
+          <address>{negocio.direccion.linea}<br />{negocio.direccion.ciudad}</address>
+          <p>{negocio.redes.usuario}</p>
+        </div>
+        <a class="pie__qr" href={urlMenu} aria-label="Abrir el menú en línea">
+          <span class="pie__qr-img" set:html={qr} />
+          <span>Escanea y<br />pide en línea</span>
+        </a>
+      </footer>
+    </article>
+
+    <section class="descargas no-imprimir" aria-labelledby="descargas-titulo">
+      <h2 id="descargas-titulo">Llévate la carta en imagen</h2>
+      <p>Listas para estados de WhatsApp, historias y publicaciones. Se actualizan solas cuando cambian los precios.</p>
+      <ul class="descargas__grid">
+        {descargas.map((d) => (
+          <li class="descarga">
+            <a class="descarga__vista" href={d.png} target="_blank" rel="noopener">
+              <img src={d.vista} alt={`Carta en formato ${FORMATOS[d.formato].nombre.toLowerCase()}, fondo ${TEMAS[d.tema].toLowerCase()}`} width="360" height={d.alto} loading="lazy" />
+            </a>
+            <div class="descarga__info">
+              <strong>{FORMATOS[d.formato].nombre} · {TEMAS[d.tema]}</strong>
+              <small>{FORMATOS[d.formato].detalle}</small>
+            </div>
+            <a class="descarga__btn" href={d.png} download={d.nombreArchivo}><Icono nombre="descarga" tam={18} /> Descargar PNG</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </main>
+</Base>
+
+<script>
+  const html = document.documentElement;
+  // Mismo diseño compacto al imprimir desde el botón o desde el menú del navegador.
+  addEventListener('beforeprint', () => html.classList.add('imprimir'));
+  addEventListener('afterprint', () => html.classList.remove('imprimir'));
+  document.querySelector('[data-imprimir]')?.addEventListener('click', () => print());
+
+  const btn = document.querySelector<HTMLButtonElement>('[data-compartir]');
+  const texto = btn?.querySelector('[data-compartir-texto]');
+  btn?.addEventListener('click', async () => {
+    const url = btn.dataset.url!;
+    if (navigator.share) {
+      try { await navigator.share({ title: btn.dataset.titulo, url }); } catch { /* cancelado */ }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      if (texto) { texto.textContent = '¡Enlace copiado!'; setTimeout(() => (texto.textContent = 'Compartir'), 2200); }
+    } catch {
+      prompt('Copia el enlace de la carta:', url);
+    }
+  });
+</script>
+
+<style>
+  /* ── Barra de acciones (solo pantalla) ── */
+  .barra { position: sticky; top: 0; z-index: 10; background: var(--mar); color: #fff; box-shadow: 0 6px 20px -12px rgb(0 0 0 / 50%); }
+  .barra__in { width: min(100% - 2 * var(--gutter), 900px); margin-inline: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 0; }
+  .barra__volver { font-weight: 800; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; gap: 6px; color: var(--oro-claro); }
+  .barra__acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+  .accion {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px;
+    background: rgb(255 255 255 / 14%); color: #fff; font: 800 .9rem/1 var(--f-texto); text-decoration: none; cursor: pointer;
+  }
+  .accion:hover { background: rgb(255 255 255 / 24%); }
+  .accion--wa { background: #1f9d55; }
+  .accion--wa:hover { background: #178a49; }
+  @media (max-width: 560px) {
+    .barra__acciones { width: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+    .accion { flex-direction: column; justify-content: center; gap: 4px; padding: 8px 6px; border-radius: 14px; font-size: .75rem; text-align: center; line-height: 1.15; }
+  }
+
+  /* ── Hoja ── */
+  .lienzo { padding: clamp(14px, 4vw, 40px) var(--gutter) 64px; }
+  .hoja {
+    width: min(100%, 900px); margin-inline: auto;
+    background: var(--papel); border: 1px solid var(--linea); border-radius: 10px;
+    padding: clamp(22px, 5vw, 52px) clamp(18px, 5vw, 56px) 0;
+    box-shadow: 0 24px 60px -30px rgb(59 32 20 / 35%);
+  }
+  .hoja__cabeza { display: flex; align-items: center; gap: clamp(14px, 3vw, 28px); padding-bottom: 20px; border-bottom: 1px solid var(--linea); }
+  .hoja__logo { width: clamp(92px, 20vw, 150px); height: auto; flex: none; }
+  .hoja__eyebrow, .pie__eyebrow { font: 800 .75rem/1.3 var(--f-texto); letter-spacing: .16em; text-transform: uppercase; color: var(--camaron-osc); }
+  .hoja h1 { font-size: clamp(2rem, 6vw, 3.2rem); color: var(--mar); font-weight: 800; margin-top: 2px; }
+  .hoja__lema { color: var(--tinta-suave); margin-top: 6px; max-width: 46ch; }
+
+  .novedades { display: grid; gap: 10px; margin-top: 22px; }
+  @media (min-width: 700px) { .novedades { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); } }
+  .novedad {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 16px 18px; border-radius: 8px; background: var(--mar); color: #fff;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .novedad:nth-child(even) { background: var(--camaron); }
+  .novedad__tag { font: 800 .7rem/1 var(--f-texto); letter-spacing: .12em; text-transform: uppercase; color: var(--oro-claro); }
+  .novedad:nth-child(even) .novedad__tag { color: #fff3e6; }
+  .novedad h2 { font-size: 1.45rem; margin-top: 4px; }
+  .novedad p { font-size: .875rem; color: rgb(255 255 255 / 86%); margin-top: 2px; }
+  .novedad__precio { font: 800 2.4rem/1 var(--f-display); white-space: nowrap; }
+
+  .carta { columns: 1; column-gap: 48px; padding-top: 6px; }
+  @media (min-width: 700px) { .carta { columns: 2; } }
+  .cat { break-inside: avoid; padding-top: 22px; }
+  .cat h2 { display: flex; align-items: baseline; gap: 10px; font-size: 1.5rem; color: var(--cafe); padding-bottom: 8px; border-bottom: 2px solid var(--cafe); margin-bottom: 4px; }
+  .cat h2 span { font: 800 .8rem/1 var(--f-texto); color: var(--camaron-osc); }
+  .item { padding: 11px 0; border-bottom: 1px solid var(--linea); break-inside: avoid; }
+  .item:last-child { border-bottom: 0; }
+  .item__linea { display: flex; align-items: baseline; gap: 8px; }
+  .item__nombre { font: 700 1.15rem/1.25 var(--f-display); }
+  .item__puntos { flex: 1; min-width: 16px; border-bottom: 2px dotted #c9b393; transform: translateY(-4px); }
+  .item__precio { font: 800 1.3rem/1 var(--f-display); color: var(--camaron-osc); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .item__detalle { font-size: .9rem; line-height: 1.4; color: var(--tinta-suave); margin-top: 3px; padding-right: 28px; }
+  .item__opciones { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+  .item__linea--opcion { font-weight: 700; font-size: .95rem; padding-left: 14px; position: relative; }
+  .item__linea--opcion::before { content: ''; position: absolute; left: 0; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--camaron); }
+  .item__linea--opcion .item__precio { font-size: 1.15rem; }
+  .hoja__moneda { font-size: .8rem; color: var(--tinta-suave); padding: 14px 0 4px; }
+
+  .hoja__pie {
+    display: grid; gap: 18px; margin: 14px calc(-1 * clamp(18px, 5vw, 56px)) 0; padding: 22px clamp(18px, 5vw, 56px);
+    border-top: 1px solid var(--linea); background: var(--arena); border-radius: 0 0 10px 10px; font-size: .9rem; color: var(--tinta-suave);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  @media (min-width: 700px) { .hoja__pie { grid-template-columns: 1fr 1.2fr 1fr auto; align-items: start; } }
+  .hoja__pie p + p { margin-top: 6px; }
+  .hoja__pie strong { color: var(--tinta); }
+  .hoja__pie address { font-style: normal; margin-top: 6px; }
+  .pie__eyebrow { margin-bottom: 6px; }
+  .pie__tel { display: block; font: 800 1.9rem/1.1 var(--f-display); color: var(--cafe); text-decoration: none; margin-bottom: 4px; }
+  .pie__qr { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 800 .8rem/1.25 var(--f-texto); color: var(--cafe); }
+  .pie__qr-img { display: block; width: 92px; height: 92px; padding: 6px; background: #fff; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--linea); }
+  .pie__qr-img :global(svg) { width: 100%; height: 100%; }
+
+  /* ── Descargas (solo pantalla) ── */
+  .descargas { width: min(100%, 900px); margin: 48px auto 0; }
+  .descargas h2 { font-size: clamp(1.6rem, 5vw, 2.1rem); color: var(--mar); }
+  .descargas > p { color: var(--tinta-suave); margin-top: 4px; }
+  .descargas__grid { display: grid; gap: 14px; margin: 18px 0 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .descarga { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: var(--papel); border-radius: var(--radio); box-shadow: var(--sombra); }
+  .descarga__vista { display: grid; place-items: center; aspect-ratio: 9 / 13; background: var(--arena-2); border-radius: 10px; overflow: hidden; }
+  .descarga__vista img { width: 100%; height: 100%; object-fit: contain; }
+  .descarga__info { display: grid; gap: 2px; }
+  .descarga__info small { color: var(--tinta-suave); font-size: .8rem; }
+  .descarga__btn { margin-top: auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border-radius: 999px; background: var(--mar); color: #fff; font-weight: 800; font-size: .9rem; text-decoration: none; }
+  .descarga__btn:hover { background: var(--mar-claro); }
+
+  /* ── Impresión: una hoja tamaño carta ──
+     La clase .imprimir se agrega en beforeprint; @media print cubre lo demás. */
+  @page { size: letter portrait; margin: 9mm 10mm; }
+  @media print {
+    .no-imprimir { display: none !important; }
+    :global(body) { background: #fff; }
+  }
+  :global(html.imprimir) { font-size: 13px; }
+  :global(html.imprimir body) { background: #fff; }
+  :global(html.imprimir) .lienzo { padding: 0; }
+  :global(html.imprimir) .hoja { width: 100%; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
+  :global(html.imprimir) .hoja__pie { margin-inline: 0; padding: 14px 16px; border-radius: 8px; grid-template-columns: 1fr 1.2fr 1fr auto; }
+  :global(html.imprimir) .novedades { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+  :global(html.imprimir) .carta { columns: 2; }
+  :global(html.imprimir) .hoja__logo { width: 120px; }
+  :global(html.imprimir) .cat { padding-top: 14px; }
+  :global(html.imprimir) .item { padding: 7px 0; }
+</style>

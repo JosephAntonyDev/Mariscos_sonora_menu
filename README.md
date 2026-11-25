@@ -24,6 +24,18 @@ Ejemplo, subir el aguachile a $290:
 
 Para ocultar un platillo agotado sin borrarlo: `disponible: false`.
 
+## Carta para imprimir y compartir (`/carta`)
+
+[elchiapasonora.vercel.app/carta](https://elchiapasonora.vercel.app/carta) es la carta completa en una sola hoja:
+
+- **Imprimir o PDF**: sale en una hoja tamaño carta, con un QR que lleva al menú para pedir en línea.
+- **Enviar por WhatsApp / Compartir**: manda el enlace de la carta (al compartirlo se ve la imagen de la carta).
+- **Imágenes descargables**: estados/historias (1080 × 1920) y publicación (1080 × 1350), en fondo Arena o Mar.
+
+Las imágenes se generan en cada despliegue a partir de `src/data/menu.ts` (`src/lib/carta-imagen.ts` → `/descargas/*.png`), así que **no hay que regenerarlas a mano**: al cambiar un precio y hacer push, la carta y las imágenes se actualizan solas.
+
+Se llega a la carta desde el menú por el enlace del encabezado, el primer chip de la barra de categorías, la sección "Toda la carta en una sola hoja" y el pie de página.
+
 ## Desarrollo
 
 ```bash

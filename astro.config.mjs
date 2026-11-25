@@ -8,7 +8,7 @@ const site =
   process.env.SITE_URL ??
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : 'https://mariscos-sonora-menu.vercel.app');
+    : 'https://elchiapasonora.vercel.app');
 
 export default defineConfig({
   site,
