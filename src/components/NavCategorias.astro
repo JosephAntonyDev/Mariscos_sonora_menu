@@ -12,14 +12,21 @@ const { enlaces } = Astro.props;
 
 <script>
   // Resalta la categoría visible y la mantiene a la vista en la barra.
+  const lista = document.querySelector<HTMLElement>('.navcat__lista')!;
   const links = new Map(
     [...document.querySelectorAll<HTMLAnchorElement>('[data-navcat]')].map((a) => [a.dataset.navcat!, a]),
   );
+  let activo = '';
   const marcar = (id: string) => {
+    if (id === activo) return;
+    activo = id;
     links.forEach((a, key) => {
       if (key === id) {
         a.setAttribute('aria-current', 'true');
-        a.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+        // Desplaza solo la barra en horizontal. No usar scrollIntoView(): en un
+        // elemento sticky también mueve la página y regresa al usuario hacia arriba.
+        const li = a.parentElement!;
+        lista.scrollTo({ left: li.offsetLeft - (lista.clientWidth - li.offsetWidth) / 2, behavior: 'smooth' });
       } else a.removeAttribute('aria-current');
     });
   };
@@ -47,6 +54,7 @@ const { enlaces } = Astro.props;
     border-bottom: 1px solid var(--linea);
   }
   .navcat__lista {
+    position: relative; /* referencia para offsetLeft de los chips */
     display: flex; gap: 8px; margin-block: 0; padding: 10px 0; list-style: none;
     overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity;
     min-height: var(--nav-alto); align-items: center;
