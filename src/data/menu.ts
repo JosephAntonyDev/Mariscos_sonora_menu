@@ -21,7 +21,7 @@ import tosticeviche from '../assets/fotos/tosticeviche.png';
 import especial from '../assets/fotos/especial.png';
 // Fotos de referencia (Unsplash). Créditos en src/assets/fotos/CREDITOS.md
 import cocaCola from '../assets/fotos/coca-cola.jpg';
-import bing from '../assets/fotos/bing.jpg';
+import boing from '../assets/fotos/boing.jpg';
 import agua from '../assets/fotos/agua.jpg';
 
 export type Etiqueta = 'nuevo' | 'tiempo-limitado' | 'paquete' | 'favorito';
@@ -169,12 +169,12 @@ export const carta: Categoria[] = [
         fotoAlt: 'Botella de Coca-Cola fría (foto de referencia)',
       },
       {
-        id: 'bing',
-        nombre: 'Bing',
+        id: 'boing',
+        nombre: 'Boing',
         descripcion: '340 ml · Mango, fresa, manzana o guayaba',
         precios: [{ monto: 25 }],
-        foto: bing,
-        fotoAlt: 'Botella de jugo de fruta (foto de referencia)',
+        foto: boing,
+        fotoAlt: 'Cajitas de Boing de mango y uva',
       },
       {
         id: 'agua-1l',
