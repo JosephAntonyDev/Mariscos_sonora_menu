@@ -13,7 +13,7 @@ export const ICONOS = {
   cerrar: 'M18 6 6 18 M6 6l12 12',
   bolsa: 'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z M3 6h18 M16 10a4 4 0 0 1-8 0',
   flecha: 'M5 12h14 M13 6l6 6-6 6',
-  facebook: 'M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3Z',
+  facebook: 'M14 8h3V4h-3a5 5 0 0 0-5 5v2H6v4h3v9h4v-9h3.2l.8-4H13V9a1 1 0 0 1 1-1Z',
   instagram: 'M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Z M16 11.4A4 4 0 1 1 12.6 8a4 4 0 0 1 3.4 3.4Z M17.5 6.5h.01',
   descarga: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3',
   imprimir: 'M6 9V2h12v7 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v8H6Z',
@@ -23,4 +23,4 @@ export const ICONOS = {
 
 export type NombreIcono = keyof typeof ICONOS;
 /** Íconos de relleno sólido (el resto es de trazo). */
-export const RELLENO: NombreIcono[] = ['whatsapp'];
+export const RELLENO: NombreIcono[] = ['whatsapp', 'facebook'];

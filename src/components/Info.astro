@@ -72,9 +72,12 @@ const { datosTransferencia } = negocio.pago;
         <a class="boton boton--claro" href={`tel:${negocio.telefono.tel}`}><Icono nombre="telefono" /> Llamar</a>
       </div>
       <div class="contacto__redes">
-        <a href={negocio.redes.facebook} target="_blank" rel="noopener" aria-label="Facebook"><Icono nombre="facebook" /></a>
-        <a href={negocio.redes.instagram} target="_blank" rel="noopener" aria-label="Instagram"><Icono nombre="instagram" /></a>
-        <span>{negocio.redes.usuario}</span>
+        <p class="contacto__eyebrow">Síguenos</p>
+        <p class="contacto__usuario">{negocio.redes.usuario}</p>
+        <div class="redes">
+          <a class="red" href={negocio.redes.facebook} target="_blank" rel="noopener"><Icono nombre="facebook" tam={20} /> Facebook</a>
+          <a class="red" href={negocio.redes.instagram} target="_blank" rel="noopener"><Icono nombre="instagram" tam={20} /> Instagram</a>
+        </div>
       </div>
     </div>
   </div>
@@ -128,7 +131,15 @@ const { datosTransferencia } = negocio.pago;
   .contacto__eyebrow { font: 800 .75rem/1 var(--f-texto); letter-spacing: .14em; text-transform: uppercase; color: var(--oro-claro); }
   .contacto__tel { display: inline-block; margin-top: 6px; font: 800 clamp(1.8rem, 6vw, 2.4rem)/1 var(--f-display); text-decoration: none; }
   .contacto__acciones { display: flex; flex-wrap: wrap; gap: 10px; }
-  .contacto__redes { display: flex; align-items: center; gap: 8px; width: 100%; padding-top: 14px; border-top: 1px solid rgb(255 255 255 / 18%); font-weight: 700; color: rgb(255 255 255 / 85%); }
-  .contacto__redes a { color: #fff; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: rgb(255 255 255 / 12%); }
-  .contacto__redes a:hover { background: rgb(255 255 255 / 22%); }
+  .contacto__redes { width: 100%; padding-top: 16px; border-top: 1px solid rgb(255 255 255 / 18%); }
+  .contacto__usuario { margin-top: 4px; font-weight: 800; color: #fff; overflow-wrap: anywhere; }
+  .redes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  @media (min-width: 560px) { .redes { display: flex; flex-wrap: wrap; } }
+  .red {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px;
+    border-radius: 12px; background: var(--papel); color: var(--mar); font-weight: 800; text-decoration: none;
+    transition: background-color .15s ease;
+  }
+  .red:hover { background: #fff; }
+  .red :global(svg) { flex: none; }
 </style>

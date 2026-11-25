@@ -13,6 +13,10 @@ const CROPS = {
   arreglada: { src: 'flyer-arreglada.webp', left: 160, top: 400, width: 580, height: 315 },
   ceviche: { src: 'flyer-bebidas.webp', left: 392, top: 628, width: 504, height: 420 },
   aguachile: { src: 'flyer-menu.webp', left: 12, top: 1066, width: 332, height: 256 },
+  // Ceviche servido en la bolsa de totopos
+  tosticeviche: { src: 'flyer-bebidas.webp', left: 490, top: 772, width: 406, height: 284 },
+  // Paquete: aguachile + tostada, como referencia de un pedido completo
+  especial: { src: 'flyer-menu.webp', left: 10, top: 1046, width: 760, height: 290 },
 };
 
 await fs.mkdir(r('src/assets/fotos'), { recursive: true });

@@ -17,6 +17,12 @@ import naranjera from '../assets/fotos/naranjera.png';
 import arreglada from '../assets/fotos/arreglada.png';
 import ceviche from '../assets/fotos/ceviche.png';
 import aguachile from '../assets/fotos/aguachile.png';
+import tosticeviche from '../assets/fotos/tosticeviche.png';
+import especial from '../assets/fotos/especial.png';
+// Fotos de referencia (Unsplash). Créditos en src/assets/fotos/CREDITOS.md
+import cocaCola from '../assets/fotos/coca-cola.jpg';
+import bing from '../assets/fotos/bing.jpg';
+import agua from '../assets/fotos/agua.jpg';
 
 export type Etiqueta = 'nuevo' | 'tiempo-limitado' | 'paquete' | 'favorito';
 
@@ -109,6 +115,8 @@ export const carta: Categoria[] = [
         nombre: 'Tosticeviche',
         descripcion: 'Ceviche para botanear.',
         precios: [{ monto: 90 }],
+        foto: tosticeviche,
+        fotoAlt: 'Ceviche de camarón con mango servido en una bolsa de totopos',
       },
     ],
   },
@@ -123,6 +131,8 @@ export const carta: Categoria[] = [
         descripcion: 'Paquete especial de la casa. Incluye 1 Coca-Cola de 500 ml.',
         precios: [{ monto: 500 }],
         etiquetas: ['paquete'],
+        foto: especial,
+        fotoAlt: 'Aguachile con totopos y tostada de mariscos, referencia del paquete',
         destacado: true,
       },
     ],
@@ -150,14 +160,30 @@ export const carta: Categoria[] = [
     nombre: 'Refrescos y agua',
     corto: 'Bebidas',
     platillos: [
-      { id: 'coca-500', nombre: 'Coca-Cola', descripcion: '500 ml', precios: [{ monto: 35 }] },
+      {
+        id: 'coca-500',
+        nombre: 'Coca-Cola',
+        descripcion: '500 ml',
+        precios: [{ monto: 35 }],
+        foto: cocaCola,
+        fotoAlt: 'Botella de Coca-Cola fría (foto de referencia)',
+      },
       {
         id: 'bing',
         nombre: 'Bing',
         descripcion: '340 ml · Mango, fresa, manzana o guayaba',
         precios: [{ monto: 25 }],
+        foto: bing,
+        fotoAlt: 'Botella de jugo de fruta (foto de referencia)',
       },
-      { id: 'agua-1l', nombre: 'Agua natural', descripcion: '1 litro', precios: [{ monto: 15 }] },
+      {
+        id: 'agua-1l',
+        nombre: 'Agua natural',
+        descripcion: '1 litro',
+        precios: [{ monto: 15 }],
+        foto: agua,
+        fotoAlt: 'Botella de agua natural (foto de referencia)',
+      },
     ],
   },
 ];
