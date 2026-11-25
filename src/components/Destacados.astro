@@ -1,0 +1,79 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../assets/brand/logo-insignia.png';
+import { destacados, precio } from '../data/menu';
+import Etiquetas from './Etiquetas.astro';
+import BotonAgregar from './BotonAgregar.astro';
+---
+<section id="destacados" class="destacados" aria-labelledby="destacados-titulo">
+  <div class="contenedor destacados__cabeza">
+    <span class="eyebrow">Recomendados de la casa</span>
+    <h2 id="destacados-titulo">Lo más antojable</h2>
+  </div>
+  <ul class="destacados__carril contenedor" role="list">
+    {destacados.map((p) => {
+      const unico = p.precios.length === 1;
+      const desde = Math.min(...p.precios.map((x) => x.monto));
+      return (
+        <li class="tarjeta">
+          <a class="tarjeta__media" href={`#p-${p.id}`} tabindex="-1" aria-hidden="true">
+            {p.foto ? (
+              <Image src={p.foto} alt="" widths={[320, 480, 640]} sizes="(min-width: 860px) 320px, 78vw" loading="lazy" />
+            ) : (
+              <div class="tarjeta__sinfoto">
+                <Image src={logo} alt="" width={240} widths={[160, 240]} sizes="120px" loading="lazy" />
+              </div>
+            )}
+          </a>
+          <div class="tarjeta__cuerpo">
+            <Etiquetas lista={p.etiquetas} />
+            <h3><a href={`#p-${p.id}`}>{p.nombre}</a></h3>
+            {p.descripcion && <p>{p.descripcion}</p>}
+            <div class="tarjeta__pie">
+              <span class="precio">
+                {!unico && <small>desde </small>}
+                {precio(desde)}
+              </span>
+              {unico ? <BotonAgregar clave={p.id} etiqueta={p.nombre} grande /> : <a class="tarjeta__ver" href={`#p-${p.id}`}>Elegir tamaño</a>}
+            </div>
+          </div>
+        </li>
+      );
+    })}
+  </ul>
+</section>
+
+<style>
+  .destacados { padding: 8px 0 12px; }
+  .destacados__cabeza h2 { font-size: clamp(1.75rem, 5vw, 2.25rem); color: var(--mar); margin-top: 2px; }
+  .destacados__carril {
+    display: grid; grid-auto-flow: column; grid-auto-columns: min(78vw, 300px); gap: 14px;
+    margin-block: 0; padding: 14px 0 18px; list-style: none;
+    overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+    scrollbar-width: thin; scrollbar-color: var(--linea) transparent;
+  }
+  @media (min-width: 860px) {
+    .destacados__carril { grid-auto-flow: row; grid-template-columns: repeat(4, 1fr); grid-auto-columns: auto; overflow: visible; }
+  }
+  .tarjeta {
+    display: flex; flex-direction: column; scroll-snap-align: start;
+    background: var(--papel); border-radius: var(--radio); overflow: hidden;
+    box-shadow: var(--sombra);
+  }
+  .tarjeta__media { display: block; aspect-ratio: 4 / 3; overflow: hidden; background: var(--arena-2); }
+  .tarjeta__media img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+  .tarjeta:hover .tarjeta__media img { transform: scale(1.04); }
+  .tarjeta__sinfoto {
+    height: 100%; display: grid; place-items: center;
+    background:
+      radial-gradient(circle at 30% 20%, rgb(233 211 164 / 45%), transparent 55%),
+      linear-gradient(150deg, var(--cobre), #6e3a22);
+  }
+  .tarjeta__sinfoto img { width: 46%; height: auto; filter: drop-shadow(0 10px 18px rgb(0 0 0 / 35%)); }
+  .tarjeta__cuerpo { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 16px; flex: 1; }
+  .tarjeta h3 { font-size: 1.3rem; }
+  .tarjeta h3 a { text-decoration: none; }
+  .tarjeta p { color: var(--tinta-suave); font-size: .9375rem; line-height: 1.45; }
+  .tarjeta__pie { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 8px; }
+  .tarjeta__ver { font-weight: 800; font-size: .9rem; color: var(--mar); text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center; }
+</style>

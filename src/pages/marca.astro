@@ -1,0 +1,207 @@
+---
+import Base from '../layouts/Base.astro';
+import Icono from '../components/Icono.astro';
+import { negocio } from '../data/negocio';
+
+const insignia = [
+  { nombre: 'PNG 1240 px', archivo: 'png/logo-insignia-1240.png', uso: 'Impresión, lonas pequeñas' },
+  { nombre: 'PNG 1024 px', archivo: 'png/logo-insignia-1024.png', uso: 'Redes sociales, foto de perfil' },
+  { nombre: 'PNG 512 px', archivo: 'png/logo-insignia-512.png', uso: 'Web y documentos' },
+  { nombre: 'PNG 256 px', archivo: 'png/logo-insignia-256.png', uso: 'Firmas de correo' },
+  { nombre: 'WebP 1024 px', archivo: 'webp/logo-insignia-1024.webp', uso: 'Web ligera' },
+  { nombre: 'SVG', archivo: 'svg/logo-insignia.svg', uso: 'Programas que piden SVG' },
+];
+
+const variantes = [
+  { id: 'color', nombre: 'Color', fondo: 'var(--papel)' },
+  { id: 'relieve', nombre: 'Relieve (como el logo)', fondo: 'var(--mar-claro)' },
+  { id: 'blanco', nombre: 'Blanco', fondo: 'var(--mar)' },
+  { id: 'negro', nombre: 'Negro', fondo: '#fff' },
+];
+
+const firmas = [
+  { archivo: 'png/firma-horizontal-color.png', nombre: 'Firma a color', fondo: 'var(--papel)' },
+  { archivo: 'png/firma-horizontal-blanco.png', nombre: 'Firma en blanco', fondo: 'var(--cafe)' },
+  { archivo: 'png/firma-horizontal-mar.png', nombre: 'Firma sobre mar', fondo: 'var(--mar)' },
+];
+
+const iconos = [
+  { archivo: 'iconos/icon-512.png', nombre: 'Ícono 512', detalle: 'App / PWA' },
+  { archivo: 'iconos/icon-maskable-512.png', nombre: 'Ícono adaptable', detalle: 'Android' },
+  { archivo: 'iconos/apple-touch-icon.png', nombre: 'Apple touch', detalle: 'iPhone · 180 px' },
+  { archivo: 'iconos/favicon.ico', nombre: 'Favicon', detalle: 'Navegador · .ico', vista: 'iconos/favicon-32.png' },
+];
+
+const paleta = [
+  { nombre: 'Mar profundo', hex: '#0E4A57', uso: 'Fondos principales', claro: true },
+  { nombre: 'Mar', hex: '#1C7D86', uso: 'Degradados y enlaces', claro: true },
+  { nombre: 'Camarón', hex: '#E4561B', uso: 'Botones y acentos', claro: true },
+  { nombre: 'Cobre', hex: '#A65E3C', uso: 'Moneda del logo', claro: true },
+  { nombre: 'Oro', hex: '#C9A468', uso: 'Aro y detalles' },
+  { nombre: 'Oro claro', hex: '#E9D3A4', uso: 'Textos sobre mar' },
+  { nombre: 'Café', hex: '#3B2014', uso: 'Rótulos y texto', claro: true },
+  { nombre: 'Arena', hex: '#F7EFE3', uso: 'Fondo general' },
+];
+---
+<Base titulo={`Kit de marca · ${negocio.nombre}`} descripcion={`Logos, íconos, colores y tipografías oficiales de ${negocio.nombre}.`} indexar={false}>
+  <header class="km-cabeza">
+    <div class="contenedor">
+      <a class="km-volver" href="/">← Volver al menú</a>
+      <h1>Kit de marca</h1>
+      <p>Archivos oficiales de {negocio.nombre}. Descarga el formato que necesites.</p>
+    </div>
+  </header>
+
+  <main class="contenedor km">
+    <section aria-labelledby="t-insignia">
+      <h2 id="t-insignia">Logo insignia</h2>
+      <p class="km-nota">La moneda con el camarón es el logo principal. Fondo transparente, sin recortes ni cambios de color.</p>
+      <div class="km-insignia">
+        <div class="km-vista km-vista--damero"><img src="/marca/png/logo-insignia-512.png" alt="Logo insignia" width="320" height="320" /></div>
+        <ul class="km-archivos">
+          {insignia.map((a) => (
+            <li>
+              <div><strong>{a.nombre}</strong><span>{a.uso}</span></div>
+              <a href={`/marca/${a.archivo}`} download><Icono nombre="descarga" tam={18} /> Descargar</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="t-logotipo">
+      <h2 id="t-logotipo">Logotipo</h2>
+      <p class="km-nota">Vector puro (texto trazado). Úsalo cuando el logo insignia quede muy pequeño, en sellos, bordados o a una tinta.</p>
+      <div class="km-grid">
+        {variantes.flatMap((v) => ['apilado', 'horizontal'].map((forma) => (
+          <figure class="km-pieza">
+            <div class="km-vista" style={`background:${v.fondo}`}>
+              <img src={`/marca/svg/logotipo-${forma}-${v.id}.svg`} alt={`Logotipo ${forma}, versión ${v.nombre}`} loading="lazy" />
+            </div>
+            <figcaption>
+              <span>{forma === 'apilado' ? 'Apilado' : 'Horizontal'} · {v.nombre}</span>
+              <span class="km-links">
+                <a href={`/marca/svg/logotipo-${forma}-${v.id}.svg`} download>SVG</a>
+                <a href={`/marca/png/logotipo-${forma}-${v.id}.png`} download>PNG</a>
+              </span>
+            </figcaption>
+          </figure>
+        )))}
+      </div>
+    </section>
+
+    <section aria-labelledby="t-firmas">
+      <h2 id="t-firmas">Firmas horizontales</h2>
+      <p class="km-nota">Insignia + logotipo, para encabezados, membretes y portadas.</p>
+      <div class="km-grid km-grid--ancho">
+        {firmas.map((f) => (
+          <figure class="km-pieza">
+            <div class="km-vista" style={`background:${f.fondo}`}><img src={`/marca/${f.archivo}`} alt={f.nombre} loading="lazy" /></div>
+            <figcaption><span>{f.nombre}</span><span class="km-links"><a href={`/marca/${f.archivo}`} download>PNG</a></span></figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+
+    <section aria-labelledby="t-iconos">
+      <h2 id="t-iconos">Íconos</h2>
+      <div class="km-grid km-grid--iconos">
+        {iconos.map((i) => (
+          <figure class="km-pieza">
+            <div class="km-vista km-vista--damero"><img src={`/marca/${i.vista ?? i.archivo}`} alt={i.nombre} loading="lazy" class="km-icono" /></div>
+            <figcaption><span>{i.nombre}<small>{i.detalle}</small></span><span class="km-links"><a href={`/marca/${i.archivo}`} download>Bajar</a></span></figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+
+    <section aria-labelledby="t-color">
+      <h2 id="t-color">Colores</h2>
+      <ul class="km-paleta">
+        {paleta.map((c) => (
+          <li style={`--c:${c.hex}`} class:list={{ claro: c.claro }}>
+            <span class="km-muestra">{c.hex}</span>
+            <strong>{c.nombre}</strong>
+            <small>{c.uso}</small>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section aria-labelledby="t-tipo">
+      <h2 id="t-tipo">Tipografía</h2>
+      <div class="km-tipos">
+        <div class="km-tipo">
+          <span class="km-tipo__muestra" style="font-family:var(--f-display);font-weight:800">Aa</span>
+          <div><strong>Baloo 2</strong><small>Títulos, precios y rótulos · ExtraBold 800</small></div>
+        </div>
+        <div class="km-tipo">
+          <span class="km-tipo__muestra" style="font-family:var(--f-texto);font-weight:700">Aa</span>
+          <div><strong>Nunito</strong><small>Textos y descripciones · Regular 400 a Black 900</small></div>
+        </div>
+      </div>
+      <p class="km-nota">Ambas son gratuitas (Google Fonts, licencia OFL).</p>
+    </section>
+
+    <section aria-labelledby="t-compartir">
+      <h2 id="t-compartir">Imagen para compartir</h2>
+      <p class="km-nota">Aparece al mandar el enlace del menú por WhatsApp o redes. 1200 × 630 px.</p>
+      <figure class="km-pieza km-pieza--og">
+        <img src="/og-image.jpg" alt="Imagen para compartir el menú" width="1200" height="630" loading="lazy" />
+        <figcaption><span>og-image.jpg</span><span class="km-links"><a href="/og-image.jpg" download>JPG</a></span></figcaption>
+      </figure>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .km-cabeza { background: var(--mar); color: #fff; padding: 28px 0 32px; }
+  .km-cabeza h1 { font-size: clamp(2.2rem, 7vw, 3.2rem); margin-top: 10px; }
+  .km-cabeza p { color: rgb(255 255 255 / 82%); margin-top: 6px; }
+  .km-volver { color: var(--oro-claro); font-weight: 700; text-underline-offset: 3px; display: inline-flex; min-height: 44px; align-items: center; }
+  .km { padding-bottom: 64px; }
+  .km section { padding-top: 40px; }
+  .km h2 { font-size: 1.75rem; color: var(--cafe); }
+  .km-nota { color: var(--tinta-suave); margin-top: 4px; max-width: 70ch; }
+
+  .km-vista { display: grid; place-items: center; padding: 22px; border-radius: var(--radio-sm); min-height: 160px; }
+  .km-vista img { max-height: 120px; width: auto; }
+  .km-vista--damero {
+    background-color: #fff;
+    background-image: conic-gradient(#eee 25%, transparent 0 50%, #eee 0 75%, transparent 0);
+    background-size: 20px 20px;
+  }
+  .km-insignia { display: grid; gap: 18px; margin-top: 16px; }
+  @media (min-width: 760px) { .km-insignia { grid-template-columns: 360px 1fr; align-items: start; } }
+  .km-insignia .km-vista img { max-height: none; width: 100%; max-width: 300px; height: auto; }
+  .km-archivos { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  .km-archivos li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; background: var(--papel); border-radius: 12px; box-shadow: var(--sombra); }
+  .km-archivos li div { display: grid; }
+  .km-archivos span { font-size: .85rem; color: var(--tinta-suave); }
+  .km-archivos a { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--mar); color: #fff; font-weight: 800; font-size: .875rem; text-decoration: none; }
+
+  .km-grid { display: grid; gap: 14px; margin-top: 16px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .km-grid--ancho { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  .km-grid--iconos { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .km-pieza { margin: 0; background: var(--papel); border-radius: var(--radio); padding: 10px; box-shadow: var(--sombra); }
+  .km-pieza figcaption { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 6px 4px; font-weight: 700; font-size: .9rem; }
+  .km-pieza figcaption small { display: block; font-weight: 500; color: var(--tinta-suave); }
+  .km-links { display: flex; gap: 6px; }
+  .km-links a { padding: 6px 10px; border-radius: 8px; background: var(--arena-2); color: var(--mar); font-size: .8rem; font-weight: 800; text-decoration: none; }
+  .km-icono { width: 96px; height: 96px; image-rendering: auto; }
+  .km-pieza--og { margin-top: 16px; max-width: 720px; }
+  .km-pieza--og img { width: 100%; height: auto; border-radius: 10px; }
+
+  .km-paleta { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+  .km-paleta li { display: grid; gap: 2px; padding-bottom: 10px; background: var(--papel); border-radius: var(--radio-sm); overflow: hidden; box-shadow: var(--sombra); }
+  .km-paleta strong, .km-paleta small { padding-inline: 12px; }
+  .km-paleta small { color: var(--tinta-suave); }
+  .km-muestra { display: flex; align-items: flex-end; height: 96px; padding: 10px 12px; background: var(--c); font: 800 .85rem/1 var(--f-texto); color: var(--cafe); margin-bottom: 6px; box-shadow: inset 0 -1px 0 rgb(0 0 0 / 6%); }
+  .km-paleta li.claro .km-muestra { color: #fff; }
+
+  .km-tipos { display: grid; gap: 12px; margin-top: 16px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .km-tipo { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--papel); border-radius: var(--radio); box-shadow: var(--sombra); }
+  .km-tipo__muestra { font-size: 3.4rem; line-height: 1; color: var(--mar); }
+  .km-tipo div { display: grid; }
+  .km-tipo small { color: var(--tinta-suave); }
+</style>

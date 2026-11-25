@@ -1,0 +1,10 @@
+---
+import Icono from './Icono.astro';
+interface Props { clave: string; etiqueta: string; grande?: boolean }
+const { clave, etiqueta, grande = false } = Astro.props;
+---
+<!-- Se activa cuando carga el carrito (componente Pedido). Sin JS queda oculto. -->
+<button type="button" class:list={['agregar', { 'agregar--grande': grande }]} data-agregar={clave} aria-label={`Agregar ${etiqueta} al pedido`}>
+  <Icono nombre="mas" tam={grande ? 18 : 20} />
+  {grande && <span>Agregar</span>}
+</button>

@@ -1,0 +1,96 @@
+---
+import { Image } from 'astro:assets';
+import { precio, type Categoria } from '../data/menu';
+import Etiquetas from './Etiquetas.astro';
+import BotonAgregar from './BotonAgregar.astro';
+
+interface Props { categoria: Categoria; indice: number }
+const { categoria, indice } = Astro.props;
+---
+<section id={categoria.id} class="seccion" aria-labelledby={`${categoria.id}-titulo`}>
+  <header class="seccion__cabeza">
+    <span class="seccion__num" aria-hidden="true">{String(indice).padStart(2, '0')}</span>
+    <div>
+      <h2 id={`${categoria.id}-titulo`}>{categoria.nombre}</h2>
+      {categoria.descripcion && <p>{categoria.descripcion}</p>}
+    </div>
+  </header>
+
+  <div class="seccion__lista">
+    {categoria.platillos.map((p) => (
+      <article id={`p-${p.id}`} class:list={['platillo', { 'platillo--foto': p.foto }]}>
+        {p.foto && (
+          <Image
+            class="platillo__foto"
+            src={p.foto}
+            alt={p.fotoAlt ?? p.nombre}
+            widths={[112, 224, 336]}
+            sizes="112px"
+            loading="lazy"
+          />
+        )}
+        <div class="platillo__cuerpo">
+          <div class="platillo__titulo">
+            <h3>{p.nombre}</h3>
+            <Etiquetas lista={p.etiquetas} />
+          </div>
+          {p.descripcion && <p class="platillo__desc">{p.descripcion}</p>}
+          {p.ingredientes && (
+            <ul class="platillo__ingredientes" aria-label="Ingredientes">
+              {p.ingredientes.map((i) => <li>{i}</li>)}
+            </ul>
+          )}
+          <ul class="platillo__precios" role="list">
+            {p.precios.map((pr, i) => {
+              const clave = p.precios.length > 1 ? `${p.id}:${i}` : p.id;
+              const etiqueta = pr.presentacion && p.precios.length > 1 ? `${p.nombre}, ${pr.presentacion}` : p.nombre;
+              return (
+                <li class="opcion">
+                  {pr.presentacion && <span class="opcion__pres">{pr.presentacion}</span>}
+                  <span class="precio" aria-label={`${pr.monto} pesos`}>{precio(pr.monto)}</span>
+                  <BotonAgregar clave={clave} etiqueta={etiqueta} />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .seccion { padding-top: clamp(28px, 5vw, 44px); }
+  .seccion__cabeza { display: flex; gap: 14px; align-items: flex-start; padding-bottom: 14px; border-bottom: 2px solid var(--cafe); }
+  .seccion__num { font: 800 .85rem/1 var(--f-texto); color: var(--camaron-osc); padding-top: 9px; letter-spacing: .06em; }
+  .seccion__cabeza h2 { font-size: clamp(1.6rem, 4.6vw, 2.1rem); color: var(--cafe); }
+  .seccion__cabeza p { color: var(--tinta-suave); margin-top: 2px; }
+
+  .seccion__lista { display: grid; }
+  @media (min-width: 860px) { .seccion__lista { grid-template-columns: 1fr 1fr; column-gap: 40px; } }
+
+  .platillo { display: flex; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--linea); scroll-margin-top: calc(var(--nav-alto) + 16px); }
+  .platillo:target { animation: resalte 1.6s ease; }
+  @keyframes resalte { 0%, 40% { background: rgb(233 211 164 / 45%); } 100% { background: transparent; } }
+  .platillo__foto {
+    flex: none; width: 96px; height: 96px; border-radius: var(--radio-sm); object-fit: cover;
+    box-shadow: var(--sombra);
+  }
+  @media (min-width: 420px) { .platillo__foto { width: 112px; height: 112px; } }
+  .platillo__cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .platillo__titulo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+  .platillo__titulo h3 { font-size: 1.25rem; font-weight: 700; color: var(--tinta); }
+  .platillo__desc { color: var(--tinta-suave); font-size: .9375rem; line-height: 1.45; }
+  .platillo__ingredientes { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 2px 0 0; padding: 0; list-style: none; }
+  .platillo__ingredientes li {
+    font-size: .78rem; font-weight: 700; color: var(--mar);
+    background: var(--mar-niebla); padding: 3px 9px; border-radius: 999px;
+  }
+  .platillo__precios { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 0; padding: 0; list-style: none; }
+  .opcion {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 4px 4px 4px 12px; border-radius: 999px; background: var(--papel); box-shadow: inset 0 0 0 1px var(--linea);
+  }
+  .opcion__pres { font-size: .85rem; font-weight: 700; color: var(--tinta-suave); }
+  .opcion .precio { font-size: 1.3rem; }
+</style>

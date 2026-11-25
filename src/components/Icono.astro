@@ -1,0 +1,18 @@
+---
+import { ICONOS, RELLENO, type NombreIcono } from '../lib/iconos';
+interface Props { nombre: NombreIcono; class?: string; tam?: number }
+const { nombre, class: clase, tam = 20 } = Astro.props;
+const relleno = RELLENO.includes(nombre);
+---
+<svg
+  class={clase}
+  width={tam}
+  height={tam}
+  viewBox="0 0 24 24"
+  aria-hidden="true"
+  fill={relleno ? 'currentColor' : 'none'}
+  stroke={relleno ? 'none' : 'currentColor'}
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+><path d={ICONOS[nombre]} /></svg>

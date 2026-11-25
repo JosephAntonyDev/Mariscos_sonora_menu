@@ -1,0 +1,85 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import NavCategorias from '../components/NavCategorias.astro';
+import Destacados from '../components/Destacados.astro';
+import SeccionCarta from '../components/SeccionCarta.astro';
+import Info from '../components/Info.astro';
+import Pie from '../components/Pie.astro';
+import Pedido from '../components/Pedido.tsx';
+import '../styles/pedido.css';
+import { categoriasVisibles, catalogoPedido, destacados } from '../data/menu';
+import { negocio } from '../data/negocio';
+
+const enlaces = [
+  ...(destacados.length ? [{ id: 'destacados', texto: 'Destacados' }] : []),
+  ...categoriasVisibles.map((c) => ({ id: c.id, texto: c.corto })),
+  { id: 'visitanos', texto: 'Horario y ubicación' },
+];
+
+const diasSchema = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const site = Astro.site!;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Restaurant',
+  name: negocio.nombre,
+  url: site.href,
+  image: new URL('/og-image.jpg', site).href,
+  logo: new URL('/marca/png/logo-insignia-512.png', site).href,
+  telephone: negocio.telefono.tel,
+  servesCuisine: ['Mariscos', 'Mexicana'],
+  priceRange: '$$',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: negocio.direccion.linea,
+    addressLocality: 'Tuxtla Gutiérrez',
+    addressRegion: 'Chiapas',
+    addressCountry: 'MX',
+  },
+  openingHoursSpecification: negocio.horario.map((t) => ({
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: diasSchema[t.dia],
+    opens: t.abre,
+    closes: t.cierra ?? negocio.cierreEstimadoAgotar,
+  })),
+  sameAs: [negocio.redes.facebook, negocio.redes.instagram],
+  hasMenu: {
+    '@type': 'Menu',
+    hasMenuSection: categoriasVisibles.map((c) => ({
+      '@type': 'MenuSection',
+      name: c.nombre,
+      hasMenuItem: c.platillos.map((p) => ({
+        '@type': 'MenuItem',
+        name: p.nombre,
+        ...(p.descripcion ? { description: p.descripcion } : {}),
+        offers: p.precios.map((pr) => ({
+          '@type': 'Offer',
+          price: pr.monto,
+          priceCurrency: 'MXN',
+          ...(pr.presentacion ? { name: pr.presentacion } : {}),
+        })),
+      })),
+    })),
+  },
+};
+---
+<Base jsonLd={jsonLd}>
+  <a class="saltar" href="#carta">Saltar al menú</a>
+  <Hero />
+  <NavCategorias enlaces={enlaces} />
+  <main id="carta">
+    <Destacados />
+    <div class="contenedor">
+      {categoriasVisibles.map((c, i) => <SeccionCarta categoria={c} indice={i + 1} />)}
+    </div>
+    <Info />
+  </main>
+  <Pie />
+  <Pedido
+    client:idle
+    catalogo={catalogoPedido}
+    whatsapp={negocio.telefono.whatsapp}
+    notaEnvio={negocio.domicilio.nota}
+    notaPago={negocio.pago.notaComprobante}
+  />
+</Base>

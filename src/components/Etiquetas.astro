@@ -1,0 +1,10 @@
+---
+import { ETIQUETAS, type Etiqueta } from '../data/menu';
+interface Props { lista?: Etiqueta[] }
+const { lista = [] } = Astro.props;
+---
+{lista.length > 0 && (
+  <ul class="etiquetas" aria-label="Etiquetas">
+    {lista.map((e) => <li class={`etiqueta etiqueta--${e}`}>{ETIQUETAS[e]}</li>)}
+  </ul>
+)}

@@ -1,0 +1,25 @@
+---
+import logotipo from '../assets/brand/logotipo-horizontal-blanco.svg?url';
+import { negocio } from '../data/negocio';
+const anio = new Date().getFullYear();
+---
+<footer class="pie">
+  <div class="contenedor pie__in">
+    <img src={logotipo} alt={negocio.nombre} width="300" height="64" loading="lazy" class="pie__logo" />
+    <p>Precios en pesos mexicanos (MXN). Sujetos a cambio sin previo aviso.</p>
+    <nav class="pie__nav" aria-label="Pie de página">
+      <a href="#destacados">Volver al menú ↑</a>
+      <a href="/marca">Kit de marca</a>
+    </nav>
+    <p class="pie__copy">© {anio} {negocio.nombre} · {negocio.ciudad}</p>
+  </div>
+</footer>
+
+<style>
+  .pie { background: var(--cafe); color: rgb(255 255 255 / 78%); padding: 36px 0 28px; font-size: .9rem; }
+  .pie__in { display: grid; gap: 14px; justify-items: start; }
+  .pie__logo { width: 240px; height: auto; }
+  .pie__nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+  .pie__nav a { color: #fff; font-weight: 700; text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center; }
+  .pie__copy { font-size: .8rem; color: rgb(255 255 255 / 55%); }
+</style>

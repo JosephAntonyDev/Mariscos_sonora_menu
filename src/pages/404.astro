@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import { Image } from 'astro:assets';
+import logo from '../assets/brand/logo-insignia.png';
+import { negocio } from '../data/negocio';
+---
+<Base titulo={`Página no encontrada · ${negocio.nombre}`} indexar={false}>
+  <main class="nf">
+    <Image src={logo} alt="" width={320} widths={[160, 320]} sizes="160px" class="nf__logo" />
+    <h1>¡Esta página se fue con la marea!</h1>
+    <p>Pero el menú sigue aquí, fresquecito.</p>
+    <a class="boton boton--primario" href="/">Ver el menú</a>
+  </main>
+</Base>
+
+<style>
+  .nf { min-height: 100dvh; display: grid; place-content: center; justify-items: center; gap: 14px; padding: 24px; text-align: center; background: var(--mar); color: #fff; }
+  .nf__logo { width: 160px; height: auto; }
+  .nf h1 { font-size: clamp(1.8rem, 6vw, 2.6rem); }
+  .nf p { color: rgb(255 255 255 / 80%); }
+</style>

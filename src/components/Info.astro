@@ -1,0 +1,134 @@
+---
+import Icono from './Icono.astro';
+import { negocio, waLink } from '../data/negocio';
+import { horarioAgrupado } from '../lib/horario';
+const grupos = horarioAgrupado(negocio.horario);
+const { datosTransferencia } = negocio.pago;
+---
+<section id="visitanos" class="info" aria-labelledby="info-titulo">
+  <div class="contenedor">
+    <span class="eyebrow">Horario, entrega y pago</span>
+    <h2 id="info-titulo">Visítanos o pide a domicilio</h2>
+
+    <div class="info__grid">
+      <article class="info__tarjeta info__tarjeta--horario">
+        <Icono nombre="reloj" tam={26} class="info__icono" />
+        <h3>Horario</h3>
+        <dl class="horario">
+          {grupos.map((g) => (
+            <div data-dias={g.diasNum.join(',')}>
+              <dt>{g.dias}</dt>
+              <dd>{g.horas}</dd>
+            </div>
+          ))}
+        </dl>
+        <p class="info__nota">Los demás días permanecemos cerrados.</p>
+      </article>
+
+      {negocio.domicilio.disponible && (
+        <article class="info__tarjeta">
+          <Icono nombre="moto" tam={26} class="info__icono" />
+          <h3>Servicio a domicilio</h3>
+          <p>{negocio.domicilio.nota}</p>
+          <a class="info__enlace" href={waLink('¡Hola! ¿Hasta dónde llevan servicio a domicilio y cuánto cuesta el envío?')} target="_blank" rel="noopener">
+            Consultar costo de envío <Icono nombre="flecha" tam={16} />
+          </a>
+        </article>
+      )}
+
+      <article class="info__tarjeta">
+        <Icono nombre="ubicacion" tam={26} class="info__icono" />
+        <h3>Ubicación</h3>
+        <address>
+          {negocio.direccion.linea}<br />{negocio.direccion.ciudad}
+        </address>
+        <a class="info__enlace" href={negocio.direccion.mapa} target="_blank" rel="noopener">
+          Cómo llegar <Icono nombre="flecha" tam={16} />
+        </a>
+      </article>
+
+      <article class="info__tarjeta">
+        <Icono nombre="pago" tam={26} class="info__icono" />
+        <h3>Pago</h3>
+        {negocio.pago.transferencia && <p>Aceptamos transferencia bancaria.</p>}
+        {datosTransferencia && (
+          <dl class="pago">
+            <div><dt>Banco</dt><dd>{datosTransferencia.banco}</dd></div>
+            <div><dt>Titular</dt><dd>{datosTransferencia.titular}</dd></div>
+            <div><dt>Número</dt><dd class="pago__num">{datosTransferencia.numero}</dd></div>
+          </dl>
+        )}
+        <p class="info__nota">{negocio.pago.notaComprobante}</p>
+      </article>
+    </div>
+
+    <div class="contacto">
+      <div>
+        <p class="contacto__eyebrow">Pedidos y dudas</p>
+        <a class="contacto__tel" href={`tel:${negocio.telefono.tel}`}>{negocio.telefono.visible}</a>
+      </div>
+      <div class="contacto__acciones">
+        <a class="boton boton--primario" href={waLink('¡Hola! Quiero hacer un pedido 🦐')} target="_blank" rel="noopener"><Icono nombre="whatsapp" /> WhatsApp</a>
+        <a class="boton boton--claro" href={`tel:${negocio.telefono.tel}`}><Icono nombre="telefono" /> Llamar</a>
+      </div>
+      <div class="contacto__redes">
+        <a href={negocio.redes.facebook} target="_blank" rel="noopener" aria-label="Facebook"><Icono nombre="facebook" /></a>
+        <a href={negocio.redes.instagram} target="_blank" rel="noopener" aria-label="Instagram"><Icono nombre="instagram" /></a>
+        <span>{negocio.redes.usuario}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Resalta el día de hoy en el horario (hora de Tuxtla).
+  import { ahoraEn } from '../lib/horario';
+  import { negocio } from '../data/negocio';
+  const { dia } = ahoraEn(negocio.zonaHoraria);
+  document.querySelectorAll<HTMLElement>('.horario [data-dias]').forEach((fila) => {
+    if (fila.dataset.dias!.split(',').map(Number).includes(dia)) fila.classList.add('hoy');
+  });
+</script>
+
+<style>
+  .info { margin-top: clamp(40px, 7vw, 72px); padding: clamp(36px, 6vw, 64px) 0; background: var(--arena-2); }
+  .info h2 { font-size: clamp(1.75rem, 5vw, 2.4rem); color: var(--mar); margin-top: 2px; }
+  .info__grid { display: grid; gap: 14px; margin-top: 22px; }
+  @media (min-width: 680px) { .info__grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1000px) { .info__grid { grid-template-columns: repeat(4, 1fr); } }
+  .info__tarjeta {
+    display: flex; flex-direction: column; gap: 8px; padding: 20px;
+    background: var(--papel); border-radius: var(--radio); box-shadow: var(--sombra);
+  }
+  .info__tarjeta :global(.info__icono) { color: var(--camaron); margin-bottom: 4px; }
+  .info__tarjeta h3 { font-size: 1.3rem; color: var(--cafe); }
+  .info__tarjeta p, .info__tarjeta address { color: var(--tinta-suave); font-style: normal; }
+  .info__nota { font-size: .875rem; margin-top: auto; }
+  .info__enlace {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: auto; min-height: 44px;
+    font-weight: 800; color: var(--mar); text-underline-offset: 3px;
+  }
+  .horario { margin: 0; display: grid; gap: 6px; }
+  .horario div { padding: 8px 10px; border-radius: 10px; }
+  .horario div.hoy { background: var(--mar-niebla); }
+  .horario div.hoy dt::after { content: ' · hoy'; color: var(--mar-claro); }
+  .horario dt { font-weight: 800; color: var(--tinta); }
+  .horario dd { margin: 0; color: var(--tinta-suave); font-size: .9375rem; }
+  .pago { margin: 4px 0; display: grid; gap: 4px; font-size: .9375rem; }
+  .pago div { display: flex; justify-content: space-between; gap: 8px; }
+  .pago dt { color: var(--tinta-suave); }
+  .pago dd { margin: 0; font-weight: 800; }
+  .pago__num { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+
+  .contacto {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px;
+    margin-top: 18px; padding: 22px; border-radius: var(--radio);
+    background: var(--mar); color: #fff;
+  }
+  .contacto__eyebrow { font: 800 .75rem/1 var(--f-texto); letter-spacing: .14em; text-transform: uppercase; color: var(--oro-claro); }
+  .contacto__tel { display: inline-block; margin-top: 6px; font: 800 clamp(1.8rem, 6vw, 2.4rem)/1 var(--f-display); text-decoration: none; }
+  .contacto__acciones { display: flex; flex-wrap: wrap; gap: 10px; }
+  .contacto__redes { display: flex; align-items: center; gap: 8px; width: 100%; padding-top: 14px; border-top: 1px solid rgb(255 255 255 / 18%); font-weight: 700; color: rgb(255 255 255 / 85%); }
+  .contacto__redes a { color: #fff; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: rgb(255 255 255 / 12%); }
+  .contacto__redes a:hover { background: rgb(255 255 255 / 22%); }
+</style>

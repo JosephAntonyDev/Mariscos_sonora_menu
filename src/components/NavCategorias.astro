@@ -1,0 +1,65 @@
+---
+interface Props { enlaces: { id: string; texto: string }[] }
+const { enlaces } = Astro.props;
+---
+<nav class="navcat" aria-label="Categorías del menú">
+  <ul class="navcat__lista contenedor">
+    {enlaces.map((e) => (
+      <li><a href={`#${e.id}`} data-navcat={e.id}>{e.texto}</a></li>
+    ))}
+  </ul>
+</nav>
+
+<script>
+  // Resalta la categoría visible y la mantiene a la vista en la barra.
+  const links = new Map(
+    [...document.querySelectorAll<HTMLAnchorElement>('[data-navcat]')].map((a) => [a.dataset.navcat!, a]),
+  );
+  const marcar = (id: string) => {
+    links.forEach((a, key) => {
+      if (key === id) {
+        a.setAttribute('aria-current', 'true');
+        a.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      } else a.removeAttribute('aria-current');
+    });
+  };
+  const visibles = new Map<string, number>();
+  const io = new IntersectionObserver(
+    (entradas) => {
+      for (const e of entradas) visibles.set(e.target.id, e.isIntersecting ? e.boundingClientRect.top : Infinity);
+      const actual = [...visibles].filter(([, top]) => top !== Infinity).sort((a, b) => a[1] - b[1])[0];
+      if (actual) marcar(actual[0]);
+    },
+    { rootMargin: '-80px 0px -55% 0px' },
+  );
+  links.forEach((_, id) => {
+    const s = document.getElementById(id);
+    if (s) io.observe(s);
+  });
+</script>
+
+<style>
+  .navcat {
+    position: sticky; top: 0; z-index: 20;
+    background: rgb(247 239 227 / 88%);
+    backdrop-filter: saturate(1.4) blur(12px);
+    -webkit-backdrop-filter: saturate(1.4) blur(12px);
+    border-bottom: 1px solid var(--linea);
+  }
+  .navcat__lista {
+    display: flex; gap: 8px; margin-block: 0; padding: 10px 0; list-style: none;
+    overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity;
+    min-height: var(--nav-alto); align-items: center;
+  }
+  .navcat__lista::-webkit-scrollbar { display: none; }
+  .navcat li { scroll-snap-align: start; flex: none; }
+  .navcat a {
+    display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px;
+    border-radius: 999px; text-decoration: none; white-space: nowrap;
+    font: 700 .9375rem/1 var(--f-texto); color: var(--tinta-suave);
+    background: var(--papel); box-shadow: inset 0 0 0 1px var(--linea);
+    transition: background-color .2s, color .2s, box-shadow .2s;
+  }
+  .navcat a:hover { color: var(--mar); }
+  .navcat a[aria-current='true'] { background: var(--mar); color: #fff; box-shadow: none; }
+</style>
