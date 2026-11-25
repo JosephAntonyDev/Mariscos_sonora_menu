@@ -22,7 +22,8 @@ const {
   imagen = { ruta: '/og-image.jpg', ancho: 1200, alto: 630, alt: `Logo de ${negocio.nombre}` },
 } = Astro.props;
 
-const canonical = new URL(Astro.url.pathname, Astro.site);
+// build.format 'file' genera /carta.html; Vercel (cleanUrls) lo sirve como /carta.
+const canonical = new URL(Astro.url.pathname.replace(/(index)?\.html$/, ''), Astro.site);
 const ogImage = new URL(imagen.ruta, Astro.site);
 ---
 <!doctype html>
